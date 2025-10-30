@@ -1,0 +1,11 @@
+{
+  "Name": "LocalOrthanc",
+  "AuthenticationEnabled": false,
+  "RemoteAccessAllowed": true,
+  "DicomAet": "ORTHANC",
+  "DicomPort": 4242,
+  "HttpPort": 8042,
+  "StorageDirectory": "/var/lib/orthanc/db",
+  "OverwriteInstances": true,
+  "Plugins": []
+}

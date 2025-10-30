@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  orthanc:
+    image: orthancteam/orthanc:latest
+    container_name: orthanc
+    restart: unless-stopped
+    ports:
+      - "8042:8042"  # HTTP UI e REST API
+      - "4242:4242"  # DICOM
+    volumes:
+      - ./orthanc/data:/var/lib/orthanc/db
+      - ./orthanc/orthanc.json:/etc/orthanc/orthanc.json:ro
+    networks:
+      - pacs-network
+
+  inference-api:
+    build: ./inference_api
+    container_name: inference-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    depends_on:
+      - orthanc
+    networks:
+      - pacs-network
+    environment:
+      - PYTHONUNBUFFERED=1
+
+networks:
+  pacs-network:
+    driver: bridge
