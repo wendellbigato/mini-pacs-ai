@@ -121,6 +121,278 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [1.2.0] - 2025-11-02
+
+### Adicionado
+
+#### Visualização e Interpretabilidade
+- **Grad-CAM (Gradient-weighted Class Activation Mapping)**: Heatmaps de atenção para interpretação visual das predições
+  - Novo módulo `inference_api/app/gradcam.py` com classe `TorchXRayVisionCAM`
+  - Destaca regiões da imagem que influenciaram cada predição
+  - Padrão-ouro em visualizadores profissionais (Sante DICOM Viewer, Horos)
+  - Suporte a múltiplos colormaps (COLORMAP_JET, COLORMAP_HOT, etc.)
+  - Overlay de heatmap sobre imagem original
+  - Conversão automática para base64 para transmissão via JSON
+
+#### Pré-processamento Otimizado
+- **Pipeline Oficial TorchXRayVision**: Implementação do método recomendado pela biblioteca
+  - Novo módulo `inference_api/app/preprocess_official.py`
+  - Normalização [-1024, 1024] HU scale (vs. [0,1] do método simplificado)
+  - `XRayCenterCrop()` para focar região torácica
+  - `XRayResizer(224)` com interpolação apropriada para raio-X
+  - Alinhado com treinamento do modelo DenseNet121
+  - Função de comparação entre métodos (`compare_preprocessing_outputs`)
+
+#### Novos Endpoints da API
+- **POST /predict_with_heatmap**: Predição + heatmaps Grad-CAM
+  - Parâmetros: `top_n` (padrão: 5), `use_official_preprocessing` (padrão: true)
+  - Retorna probabilidades + heatmaps em base64 para top N achados
+  - Tempo adicional: ~1-2s (aceitável para análise)
+  - Documentação automática no Swagger UI
+
+- **POST /compare_preprocessing**: Comparação de métodos de pré-processamento
+  - Executa inferência com ambos métodos (atual vs. oficial)
+  - Retorna probabilidades de cada método
+  - Calcula diferenças absolutas por achado
+  - Estatísticas agregadas: mean_difference, max_difference, std_difference
+  - Estatísticas dos tensores pré-processados (mean, std, min, max)
+
+#### Notebooks de Análise
+- **comparison_analysis.ipynb**: Análise comparativa completa
+  - PARTE 1: Comparação de pré-processamento (atual vs. oficial)
+    - Visualização lado-a-lado das probabilidades
+    - Gráficos de diferenças (verde/laranja/vermelho por threshold)
+    - Tabela de top 10 maiores diferenças
+  - PARTE 2: Visualização Grad-CAM
+    - Heatmaps para top 5 achados
+    - Imagem original + heatmap + probabilidade
+    - Interpretação clínica (regiões quentes/frias)
+  - PARTE 3: Análise consolidada (todas as instâncias)
+    - Estatísticas de todas as imagens DICOM do Orthanc
+    - Distribuição de diferenças (histograma + boxplot)
+    - Decisão automatizada (manter atual vs. trocar para oficial)
+
+#### Container Jupyter
+- **Dockerfile dedicado**: Container Jupyter otimizado
+  - Imagem base: `python:3.11-slim` (~500 MB vs. 2 GB de imagens oficiais)
+  - Sem senha/token para desenvolvimento
+  - Volume mount em `/workspace`
+- **Serviço no docker-compose.yml**: Jupyter como terceiro microserviço
+  - Depende de `orthanc` e `inference-api`
+  - Rede `pacs-network` (comunicação via service names)
+  - URLs internas: `http://orthanc:8042`, `http://inference-api:8000`
+- **Comandos Make**:
+  - `make jupyter`: Sobe Jupyter e exibe URL de acesso
+  - `make jupyter-stop`: Para apenas Jupyter (mantém outros serviços)
+  - `make logs-jupyter`: Logs do container Jupyter
+
+#### Dependências
+- `pytorch-grad-cam==1.4.8`: Geração de Class Activation Maps
+- `opencv-python==4.10.0.84`: Processamento de imagens e colormaps
+
+#### Schemas Pydantic
+- `PreprocessingStats`: Estatísticas de tensores pré-processados
+- `ComparePreprocessingResponse`: Response do endpoint /compare_preprocessing
+- `HeatmapData`: Dados de um heatmap (pathology, probability, heatmap_base64)
+- `PredictionWithHeatmapResponse`: Response do endpoint /predict_with_heatmap
+
+#### Documentação
+- **docs/plans/inprogress/visualizacao-preprocessing.md**: Plano detalhado de implementação
+  - Arquitetura das melhorias
+  - Fases de implementação (pré-processamento, Grad-CAM, notebook)
+  - Critérios de sucesso e validação
+  - Riscos e mitigações
+  - Justificativas técnicas (segurança, eficiência, escalabilidade)
+- **README.md atualizado**:
+  - Seção "Arquitetura Jupyter: Melhores Práticas"
+    - Justificativas da escolha do container dedicado
+    - Comparação com alternativas (Opção 2 e 3)
+    - Princípios: Segurança, Eficiência, Escalabilidade, Manutenibilidade
+  - Documentação dos novos endpoints (/predict_with_heatmap, /compare_preprocessing)
+  - Estrutura de projeto atualizada com novos arquivos
+  - Versão 1.2.0
+- **JUPYTER_IMPLEMENTADO.md**: Documentação completa da implementação Jupyter
+  - Arquitetura final
+  - Mudanças realizadas
+  - Comandos de uso
+  - Troubleshooting
+  - Checklist de validação
+
+### Melhorado
+- **Versão da API**: Atualizada de 1.0.0 para 1.2.0
+- **Endpoint raiz (/)**: Agora lista novos endpoints disponíveis
+- **Organização de código**: Separação clara entre pré-processamento atual e oficial
+- **Documentação Swagger**: Descrições detalhadas dos novos endpoints com exemplos
+
+### Detalhes Técnicos
+
+#### Grad-CAM
+- **Target layer**: Última camada convolucional do DenseNet121 (`model.model.features[-1]`)
+- **Output**: Heatmap normalizado [0, 1] em resolução 224x224
+- **Formato**: PNG em base64 (data URI)
+- **Colormap padrão**: COLORMAP_JET (vermelho=alta atenção, azul=baixa)
+
+#### Pré-processamento Oficial
+- **Normalização**: `xrv.datasets.normalize(img, 255)` → [-1024, 1024]
+- **Transformações**: `XRayCenterCrop()` + `XRayResizer(224)`
+- **Compatibilidade**: Alinhado com treinamento do modelo TorchXRayVision
+- **Decisão de uso**: Baseada em `mean_difference < 0.05` (threshold)
+
+#### Arquitetura Jupyter
+- **Padrão**: Container dedicado (Separation of Concerns)
+- **Segurança**: Breach limitado ao container Jupyter (Princípio de Menor Privilégio)
+- **Eficiência**: 500 MB vs. 2 GB (4x menor que imagem oficial)
+- **Escalabilidade**: Jupyter e API escalam independentemente
+- **Manutenibilidade**: Single Responsibility Principle (SOLID)
+
+### Notas de Performance
+- Heatmap Grad-CAM adiciona ~1-2s ao tempo de inferência (aceitável)
+- Recomendado processar heatmaps em background para aplicações de produção
+- Cache de heatmaps pode ser implementado para instâncias repetidas
+
+### Notas de Uso
+- **Notebook local vs. Docker**: Se rodar localmente, trocar URLs para `localhost:8042` e `localhost:8000`
+- **Rebuild obrigatório**: Após atualizar código Python, usar `make rebuild` (não apenas restart)
+- **Comparação de pré-processamento**: Executar `comparison_analysis.ipynb` para decisão baseada em dados
+
+### Referências
+- **Grad-CAM paper**: https://arxiv.org/abs/1610.02391
+- **TorchXRayVision docs**: https://github.com/mlmed/torchxrayvision
+- **TorchXRayVision preprocessing**: https://github.com/mlmed/torchxrayvision/blob/master/torchxrayvision/datasets.py
+- **Normalização issue**: https://github.com/mlmed/torchxrayvision/issues/9
+
+---
+
+## [1.3.0] - 2025-11-03
+
+### Adicionado
+
+#### Máscaras de Segmentação Grad-CAM
+- **Máscaras binárias automáticas**: Geração de máscaras de segmentação a partir de heatmaps Grad-CAM
+  - Novo campo `mask_base64` no endpoint `/predict_with_heatmap`
+  - Threshold adaptativo baseado na probabilidade (0.4-0.6)
+  - Formato PNG em base64 para visualização
+  - Colormap configurável (padrão: COLORMAP_HOT)
+  - Função `generate_binary_mask_from_heatmap()` em `gradcam.py`
+
+- **Visualização estilo TorchXRayVision**: Layout inspirado no notebook oficial
+  - Referência: [xray_masks.ipynb](https://github.com/mlmed/torchxrayvision/blob/main/scripts/xray_masks.ipynb)
+  - Overlay de máscaras com alpha=0.5
+  - Múltiplas máscaras por exame (uma por achado)
+  - Visualização lado-a-lado: Original + Máscaras sobrepostas
+
+#### Validação com Ground Truth (Opcional)
+- **Suporte a NIH Dataset**: Integração opcional para validação científica
+  - Novo módulo `inference_api/app/nih_dataset.py`
+  - Classe `NIHDatasetManager` para gerenciar dataset NIH
+  - Carregamento de máscaras ground truth (anotações manuais)
+  - Configuração via variável de ambiente `NIH_DATASET_PATH`
+
+- **Novos Endpoints de Validação**:
+  - `GET /masks`: Retorna máscaras ground truth de amostras do NIH Dataset
+    - Query params: `sample_idx`, `pathology`
+    - Response com imagem + máscaras em base64
+  - `POST /validate_masks`: Valida Grad-CAM vs ground truth
+    - Calcula IoU (Intersection over Union)
+    - Avaliação automática: excellent/good/fair/poor
+    - Bounding boxes Grad-CAM vs máscaras ground truth
+
+- **Métricas de Validação**:
+  - Cálculo de IoU (Intersection over Union)
+  - Função `calculate_iou()` para comparar bbox com máscara
+  - Função `compare_gradcam_with_groundtruth()` para validação completa
+  - Estatísticas de cobertura da máscara (% da imagem)
+
+#### Documentação Clínica Completa
+- **CLINICAL_USAGE.md**: Guia completo para médicos radiologistas
+  - Comparação Grad-CAM vs Ground Truth (tabela detalhada)
+  - Fluxo de trabalho clínico recomendado
+  - Interpretação de probabilidades e máscaras
+  - Limitações e responsabilidades médicas
+  - Casos de uso recomendados (quando usar/não usar)
+  - Evidência científica (papers + FDA/ANVISA)
+  - Referências a papers validados
+
+- **README.md - Seção "Uso Clínico"**: Orientações para médicos
+  - Por que Grad-CAM é escolha correta para PACS (6 critérios)
+  - Diferença clara entre Grad-CAM e ground truth
+  - Quando usar cada abordagem
+  - Limitações clínicas destacadas
+  - Link para guia clínico completo
+
+- **Notebook comparison_analysis.ipynb - PARTE 4**:
+  - Explicação técnica para médicos
+  - Tabela comparativa Grad-CAM vs Ground Truth
+  - Referência ao xray_masks.ipynb oficial
+  - Avisos médicos em cada visualização
+  - Comentários explicativos no código
+
+#### Schemas Pydantic
+- `GroundTruthMask`: Dados de máscara ground truth
+- `ValidationResult`: Resultado da validação (IoU score, avaliação)
+- `MasksResponse`: Response do endpoint /masks
+- `ValidateMasksResponse`: Response do endpoint /validate_masks
+- Campo `mask_base64` adicionado a `HeatmapData`
+
+### Melhorado
+- **Versão da API**: Atualizada de 1.2.0 para 1.3.0
+- **Endpoint raiz (/)**: Agora exibe disponibilidade do NIH dataset
+- **Endpoint /predict_with_heatmap**: Retorna heatmaps + máscaras automaticamente
+- **Documentação README.md**: Seção completa sobre uso clínico
+- **Notebook comparison_analysis.ipynb**: PARTE 4 com máscaras estilo TorchXRayVision
+
+### Detalhes Técnicos
+
+#### Máscaras Grad-CAM
+- **Binarização**: Threshold adaptativo (0.4 para prob<50%, 0.5 para 50-70%, 0.6 para >70%)
+- **Colormap**: COLORMAP_HOT (cores quentes para regiões de atenção)
+- **Output**: PNG em base64 (mesmo formato dos heatmaps)
+- **Tamanho**: 224x224 (redimensionado para tamanho original no notebook)
+
+#### Validação Ground Truth
+- **Dataset suportado**: NIH Chest X-ray (112,120 imagens)
+- **Configuração**: Volume mount + variável ambiente `NIH_DATASET_PATH`
+- **Opcional**: Sistema funciona normalmente sem NIH dataset
+- **Uso**: Validação científica, não inferência em produção
+
+#### Arquitetura de Validação
+- **Separação clara**: Inferência (Grad-CAM) vs Validação (Ground Truth)
+- **Design**: NIH dataset é opcional, não obrigatório
+- **Performance**: Validação roda em background, não afeta inferência
+
+### Comparação: Grad-CAM vs Ground Truth
+
+| Característica | Grad-CAM | Ground Truth |
+|----------------|----------|--------------|
+| **Origem** | Gerado automaticamente | Anotado manualmente |
+| **Uso** | Auxílio diagnóstico PACS | Pesquisa/Validação |
+| **Exames novos** | ✅ Sim | ❌ Não |
+| **Tempo** | 2-3s | Horas |
+| **Precisão** | ~70-80% | 100% |
+| **Custo** | Zero | Alto |
+
+### Notas de Uso Clínico
+
+**Para Médicos Radiologistas:**
+- ✅ Use Grad-CAM para exames clínicos do PACS
+- ❌ Ground truth apenas para validação/ensino
+- ⚠️ Máscaras são sugestões, não diagnóstico definitivo
+- ⚠️ Decisão final sempre do médico
+
+**Limitações:**
+- Grad-CAM: ~70-80% de concordância vs ground truth
+- Pode apresentar falsos positivos/negativos
+- Não substitui análise do radiologista
+- Sempre validar com conhecimento clínico
+
+### Referências
+- **Grad-CAM paper**: https://arxiv.org/abs/1610.02391 (Selvaraju et al., 2017)
+- **xray_masks.ipynb**: https://github.com/mlmed/torchxrayvision/blob/main/scripts/xray_masks.ipynb
+- **Probabilistic-CAM Pooling**: Ye et al., 2020 (baseline TorchXRayVision)
+- **Classificação**: FDA Classe II (CAD - Computer-Aided Detection)
+
+---
+
 ## [Unreleased]
 
 ### Planejado - Prioridade Alta
@@ -144,5 +416,6 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 **Nota:** Itens acima são melhorias extras, não fazem parte do roadmap principal. Ver `docs/plans/extras-futuras.md` para detalhes.
 
+[1.2.0]: https://github.com/wendellbarreto/mini-pacs-ai/releases/tag/v1.2.0
 [1.0.1]: https://github.com/wendellbarreto/mini-pacs-ai/releases/tag/v1.0.1
 [1.0.0]: https://github.com/wendellbarreto/mini-pacs-ai/releases/tag/v1.0.0

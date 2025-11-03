@@ -1,4 +1,7 @@
-# Como Testar a API /predict (Corrigido)
+# Como Testar a API - Guia Completo
+
+> **Versão:** 1.3.0
+> **Endpoints:** `/predict`, `/predict_with_heatmap`, `/compare_preprocessing`, `/masks`, `/validate_masks`
 
 ## ✅ Problemas Resolvidos
 
@@ -168,5 +171,170 @@ curl http://localhost:8000/health
 
 ---
 
-**Data da correção:** 2025-11-02
-**Status:** ✅ Totalmente corrigido e testado
+## 🆕 Novos Endpoints (v1.3.0)
+
+### 1. POST /predict_with_heatmap - Predição + Máscaras Grad-CAM
+
+**O que faz:**
+- Predição de achados radiológicos
+- Gera heatmaps Grad-CAM (regiões de atenção)
+- Gera máscaras binárias de segmentação automaticamente
+
+**Via Swagger UI:**
+```bash
+# 1. Acesse: http://localhost:8000/docs
+# 2. Expanda "POST /predict_with_heatmap"
+# 3. Try it out
+# 4. Upload DICOM
+# 5. Parâmetros opcionais:
+#    - top_n: 5 (número de achados)
+#    - use_official_preprocessing: true
+# 6. Execute
+```
+
+**Via curl:**
+```bash
+curl -X POST "http://localhost:8000/predict_with_heatmap?top_n=3" \
+  -H "Content-Type: multipart/form-data" \
+  -F "dicom_file=@exemplo.dcm"
+```
+
+**Resposta:**
+```json
+{
+  "probabilities": { ... },
+  "heatmaps": [
+    {
+      "pathology": "Cardiomegaly",
+      "probability": 0.78,
+      "heatmap_base64": "data:image/png;base64,...",
+      "mask_base64": "data:image/png;base64,..."
+    }
+  ],
+  "metadata": { ... }
+}
+```
+
+**Uso:**
+- Ver máscaras no notebook: `comparison_analysis.ipynb` PARTE 4
+- Heatmap: mostra intensidade da atenção (cores)
+- Máscara: segmentação binária da região de atenção
+
+---
+
+### 2. POST /compare_preprocessing - Comparar Métodos
+
+**O que faz:**
+- Compara pré-processamento atual vs oficial TorchXRayVision
+- Retorna probabilidades de ambos métodos
+- Calcula diferenças e estatísticas
+
+**Via curl:**
+```bash
+curl -X POST "http://localhost:8000/compare_preprocessing" \
+  -F "dicom_file=@exemplo.dcm"
+```
+
+**Resposta:**
+```json
+{
+  "current_method": { "Effusion": 0.66, ... },
+  "official_method": { "Effusion": 0.50, ... },
+  "absolute_differences": { "Effusion": 0.16, ... },
+  "statistics": {
+    "mean_difference": 0.1132,
+    "max_difference": 0.1609,
+    "std_difference": 0.0411
+  },
+  "preprocessing_stats": { ... }
+}
+```
+
+**Uso:**
+- Decidir qual método usar (se mean_difference > 0.05, usar oficial)
+- Ver análise completa no notebook: `comparison_analysis.ipynb` PARTE 1
+
+---
+
+### 3. GET /masks - Máscaras Ground Truth (Opcional)
+
+**O que faz:**
+- Retorna máscaras ground truth do NIH Dataset
+- Usado para validação científica (não produção)
+- Requer NIH_DATASET_PATH configurado
+
+**Via curl:**
+```bash
+# Obter amostra específica
+curl "http://localhost:8000/masks?sample_idx=0"
+
+# Buscar por patologia
+curl "http://localhost:8000/masks?pathology=Cardiomegaly"
+```
+
+**Resposta:**
+```json
+{
+  "dataset_available": false,
+  "message": "NIH Dataset não configurado..."
+}
+```
+
+**Nota:** NIH Dataset **NÃO é necessário** para uso normal. Apenas para validação científica.
+
+---
+
+### 4. POST /validate_masks - Validar Grad-CAM vs Ground Truth (Opcional)
+
+**O que faz:**
+- Compara predições Grad-CAM com máscaras ground truth
+- Calcula IoU (Intersection over Union)
+- Avalia precisão: excellent/good/fair/poor
+
+**Via curl:**
+```bash
+curl -X POST "http://localhost:8000/validate_masks?nih_sample_idx=0" \
+  -F "dicom_file=@exemplo.dcm"
+```
+
+**Resposta:**
+```json
+{
+  "dataset_available": false,
+  "message": "NIH Dataset não configurado..."
+}
+```
+
+**Nota:** Requer NIH Dataset. Ver `README.md` seção "Validação Científica" para configurar.
+
+---
+
+## 📊 Fluxo de Uso Recomendado
+
+### Para Uso Clínico (Médico Radiologista):
+
+1. **Upload DICOM no Orthanc** → automático via PACS
+2. **Chamar `/predict_with_heatmap`** → obtém probabilidades + máscaras
+3. **Visualizar no notebook** → `comparison_analysis.ipynb` PARTE 4
+4. **Analisar resultados** → médico emite laudo final
+
+### Para Validação/Pesquisa:
+
+1. **Configurar NIH Dataset** (opcional)
+2. **Chamar `/compare_preprocessing`** → decidir método
+3. **Chamar `/validate_masks`** → medir precisão (IoU)
+4. **Ajustar thresholds** → melhorar performance
+
+---
+
+## 📚 Documentação Complementar
+
+- **Uso Clínico:** Ver `CLINICAL_USAGE.md` (guia completo para médicos)
+- **Notebooks:** Ver `GUIA_NOTEBOOK.md` (como usar Jupyter)
+- **Changelog:** Ver `CHANGELOG.md` v1.3.0 (todas as mudanças)
+- **README:** Ver seção "Uso Clínico" (comparação Grad-CAM vs Ground Truth)
+
+---
+
+**Última atualização:** 2025-11-03 (v1.3.0)
+**Status:** ✅ Todos endpoints funcionando

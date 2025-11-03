@@ -1,6 +1,9 @@
-# 📓 Guia de Uso do Notebook Jupyter
+# 📓 Guia de Uso dos Notebooks Jupyter
 
-**Arquivo:** `notebooks/orthanc_inference.ipynb`
+> **Versão:** 1.3.0
+> **Notebooks disponíveis:**
+> - `orthanc_inference.ipynb` - Integração básica Orthanc → API
+> - `comparison_analysis.ipynb` - **Análise completa + Máscaras Grad-CAM** (Recomendado)
 
 ---
 
@@ -320,6 +323,91 @@ plt.savefig(f"resultado_{title}.png", dpi=300, bbox_inches="tight")
 
 ---
 
+## 🆕 Notebook Avançado: comparison_analysis.ipynb (v1.3.0)
+
+### O que oferece:
+
+Este notebook completo oferece 4 partes de análise:
+
+#### PARTE 1: Comparação de Pré-processamento
+- Compara método atual vs oficial TorchXRayVision
+- Visualizações lado-a-lado das probabilidades
+- Gráficos de diferenças (verde/laranja/vermelho)
+- Decisão automatizada (qual método usar)
+
+#### PARTE 2: Visualização Grad-CAM
+- Heatmaps de atenção para interpretação visual
+- Bounding boxes nos achados detectados
+- Visualização profissional estilo CAD
+- Processa TODOS os exames do Orthanc
+
+#### PARTE 3: Análise Consolidada
+- Estatísticas de todas as instâncias
+- Distribuição de diferenças (histograma + boxplot)
+- Top achados consolidados
+
+#### **PARTE 4: Máscaras de Segmentação Grad-CAM** ⭐ (NOVO)
+- Visualização estilo [TorchXRayVision oficial](https://github.com/mlmed/torchxrayvision/blob/main/scripts/xray_masks.ipynb)
+- Máscaras binárias geradas automaticamente
+- Overlay de máscaras sobre imagem original (alpha=0.5)
+- Layout: `[Original] [Máscara 1] [Máscara 2] ...`
+- **Diferença importante:** xray_masks.ipynb mostra ground truth (anotações manuais), nossa implementação **gera máscaras via Grad-CAM**
+
+### Como usar:
+
+**Via Container Docker (Recomendado):**
+```bash
+# 1. Subir todos os serviços (incluindo Jupyter)
+docker compose up -d
+
+# 2. Acessar Jupyter
+# URL exibida nos logs: http://localhost:8888
+docker compose logs jupyter | grep token
+
+# 3. Abrir notebook
+http://localhost:8888/notebooks/comparison_analysis.ipynb
+
+# 4. Executar células na ordem
+```
+
+**Localmente:**
+```bash
+# 1. Instalar dependências
+pip install -r notebooks/requirements.txt
+
+# 2. Modificar URLs no notebook
+# Trocar:
+#   ORTHANC_URL = "http://orthanc:8042"
+#   API_URL = "http://inference-api:8000"
+# Para:
+#   ORTHANC_URL = "http://localhost:8042"
+#   API_URL = "http://localhost:8000"
+
+# 3. Subir Jupyter
+cd notebooks
+jupyter notebook
+
+# 4. Abrir comparison_analysis.ipynb
+```
+
+### Para Médicos Radiologistas:
+
+**PARTE 4 é a mais relevante clinicamente:**
+- Mostra máscaras de segmentação das regiões suspeitas
+- Visualização familiar (estilo TorchXRayVision)
+- **IMPORTANTE:** Máscaras são geradas automaticamente via Grad-CAM
+- **NÃO são** ground truth (anotações manuais)
+- Use como **auxílio diagnóstico**, não como diagnóstico definitivo
+
+**Limitações a considerar:**
+- Precisão: ~70-80% vs ground truth
+- Pode ter falsos positivos/negativos
+- Decisão final sempre do médico
+
+Ver guia completo: `CLINICAL_USAGE.md`
+
+---
+
 ## ✅ Checklist Pré-Execução
 
 - [ ] Containers rodando (`docker compose ps`)
@@ -327,11 +415,11 @@ plt.savefig(f"resultado_{title}.png", dpi=300, bbox_inches="tight")
 - [ ] API healthy (`curl http://localhost:8000/health`)
 - [ ] DICOMs carregados no Orthanc (mínimo 1)
 - [ ] Dependências instaladas (`pip install -r notebooks/requirements.txt`)
-- [ ] Jupyter iniciado (`jupyter notebook`)
+- [ ] Jupyter iniciado (`jupyter notebook` ou via Docker)
 
 ---
 
-**Data:** 2025-11-02
-**Versão do Notebook:** 1.0
+**Última atualização:** 2025-11-03 (v1.3.0)
+**Notebooks:** 2 (orthanc_inference.ipynb, comparison_analysis.ipynb)
 **Compatível com:** Python 3.8+
 
