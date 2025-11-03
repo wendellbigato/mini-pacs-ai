@@ -1,5 +1,6 @@
 # Como Testar a API - Guia Completo
 
+> **Autor:** Wendell Barreto (wendellbarreto@gmail.com)
 > **Versão:** 1.3.0
 > **Endpoints:** `/predict`, `/predict_with_heatmap`, `/compare_preprocessing`, `/masks`, `/validate_masks`
 

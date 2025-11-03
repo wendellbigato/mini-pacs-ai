@@ -830,10 +830,15 @@ Este projeto foi desenvolvido para fins educacionais como parte de um desafio t�
 
 ## 👤 Autor
 
-Wendell Barreto
+**Wendell Barreto**
+📧 wendellbarreto@gmail.com
+
+## 🎓 Academia
+
+Para aprender mais sobre PACS, DICOM e como este sistema funciona desde o básico até conceitos avançados, consulte o **[ACADEMY.md](./ACADEMY.md)** - um guia completo de aprendizado com trilha desde fundamentos até implementação avançada.
 
 ---
 
-**Última atualização**: 2025-11-02
-**Versão**: 1.2.0
-**Novas features**: Grad-CAM visualization + Preprocessing comparison
+**Última atualização**: 2025-11-03
+**Versão**: 1.3.0
+**Novas features**: Máscaras de segmentação Grad-CAM + Validação científica

@@ -273,7 +273,7 @@ Esse notebook é explicitamente um requisito de entrega.
 
 ---
 
-## 3. O que o Claude Code deve gerar / automatizar
+## 3. Componentes do Sistema
 
 ### Arquivos de infra
 
@@ -292,8 +292,7 @@ Esse notebook é explicitamente um requisito de entrega.
 ### Notebook
 
 * `notebooks/orthanc_inference.ipynb`
-
-  * O Claude Code pode primeiro gerar uma versão `.py` sequencial (células marcadas com comentários `# %%`) que depois você converte manualmente em notebook via Jupyter/Lab/VSC.
+* `notebooks/comparison_analysis.ipynb`
 
 ### Documentação
 
@@ -302,14 +301,13 @@ Esse notebook é explicitamente um requisito de entrega.
   * Descrevendo setup rápido, portas, como subir o compose, como testar `/predict`, como rodar o notebook, e apontando para os links oficiais (Orthanc, TorchXRayVision, Docker, dataset DICOM).
 * `report/desafio_neuralmind.pdf`
 
-  * O Claude Code pode gerar um `report/desafio_neuralmind.md` com as seções:
+  * Relatório técnico com as seções:
 
     1. Arquitetura da solução
     2. Fluxo técnico (Orthanc → API → Notebook)
     3. Dificuldades encontradas
     4. O que foi aprendizado novo
-    5. O que já era conhecimento prévio
-  * Depois você exporta esse `.md` para `.pdf` e coloca no repositório como pedido. 
+    5. O que já era conhecimento prévio 
 
 ---
 

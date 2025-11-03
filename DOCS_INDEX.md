@@ -1,10 +1,25 @@
 # 📚 Índice de Documentação - Mini PACS AI v1.3.0
 
+> **Autor:** Wendell Barreto (wendellbarreto@gmail.com)
 > Guia completo de navegação pela documentação do projeto
 
 ---
 
 ## 🚀 Começando
+
+### 🎓 Trilha de Aprendizado Completa
+
+**[ACADEMY.md](./ACADEMY.md)** ⭐ **APRENDA DO BÁSICO AO AVANÇADO**
+- Módulo 1: Fundamentos PACS e DICOM
+- Módulo 2: IA em Radiologia
+- Módulo 3: Explicabilidade (Grad-CAM)
+- Módulo 4: Arquitetura da Aplicação
+- Módulo 5: Implementação Técnica
+- Módulo 6: Discovery e Insights de Desenvolvimento
+- Módulo 7: Uso Clínico e Regulamentação
+- **1200+ linhas** com explicações detalhadas, diagramas e código
+
+---
 
 ### Para Médicos Radiologistas
 1. **[CLINICAL_USAGE.md](./CLINICAL_USAGE.md)** ⭐ **COMECE AQUI**
@@ -183,28 +198,31 @@
 
 ### Médico Radiologista
 ```
-1. CLINICAL_USAGE.md (LEITURA OBRIGATÓRIA)
-2. GUIA_NOTEBOOK.md → comparison_analysis.ipynb PARTE 4
-3. README.md → Seção "Uso Clínico"
-4. TESTE_API.md → /predict_with_heatmap
+1. ACADEMY.md → Módulo 7 (Uso Clínico e Regulamentação)
+2. CLINICAL_USAGE.md (LEITURA OBRIGATÓRIA)
+3. GUIA_NOTEBOOK.md → comparison_analysis.ipynb PARTE 4
+4. README.md → Seção "Uso Clínico"
+5. TESTE_API.md → /predict_with_heatmap
 ```
 
 ### Desenvolvedor Backend
 ```
-1. README.md (visão geral)
-2. CHANGELOG.md (o que mudou)
-3. TESTE_API.md (como testar)
-4. REBUILD_INSTRUCOES.md (manutenção)
-5. Code: inference_api/app/
+1. ACADEMY.md → Módulos 4-5 (Arquitetura e Implementação)
+2. README.md (visão geral)
+3. CHANGELOG.md (o que mudou)
+4. TESTE_API.md (como testar)
+5. REBUILD_INSTRUCOES.md (manutenção)
+6. Code: inference_api/app/
 ```
 
 ### Data Scientist / Pesquisador
 ```
-1. GUIA_NOTEBOOK.md
-2. notebooks/comparison_analysis.ipynb (TODAS as partes)
-3. README.md → Seção "Validação Científica"
-4. CLINICAL_USAGE.md → Evidência científica
-5. docs/plans/inprogress/visualizacao-preprocessing.md
+1. ACADEMY.md → Módulos 2-3 (IA em Radiologia, Explicabilidade)
+2. GUIA_NOTEBOOK.md
+3. notebooks/comparison_analysis.ipynb (TODAS as partes)
+4. README.md → Seção "Validação Científica"
+5. CLINICAL_USAGE.md → Evidência científica
+6. docs/plans/inprogress/visualizacao-preprocessing.md
 ```
 
 ### DevOps / SysAdmin
@@ -232,6 +250,7 @@
 mini-pacs-ai/
 ├── 📖 DOCS_INDEX.md ⭐ (este arquivo)
 ├── 📖 README.md ⭐ (início para todos)
+├── 📖 ACADEMY.md ⭐⭐⭐ (trilha de aprendizado completa)
 ├── 📖 CLINICAL_USAGE.md ⭐ (médicos)
 ├── 📖 CHANGELOG.md (histórico)
 ├── 📖 TESTE_API.md (testar endpoints)
@@ -261,9 +280,10 @@ mini-pacs-ai/
 
 ## 🔄 Fluxo de Leitura Recomendado
 
-### 1️⃣ Primeiro Contato (15 min)
+### 1️⃣ Primeiro Contato (30 min)
 ```
 README.md → overview completo
+ACADEMY.md → Módulo 1 (Fundamentos PACS e DICOM)
 ```
 
 ### 2️⃣ Instalação e Teste (30 min)
@@ -280,8 +300,9 @@ notebooks/comparison_analysis.ipynb → PARTE 4
 README.md → Seção "Uso Clínico"
 ```
 
-### 4️⃣ Entendimento Técnico (2 horas)
+### 4️⃣ Entendimento Técnico (3-4 horas)
 ```
+ACADEMY.md → TODOS os módulos (leitura completa)
 CHANGELOG.md → v1.3.0, v1.2.0, v1.0.0
 JUPYTER_IMPLEMENTADO.md → Arquitetura
 docs/plans/inprogress/visualizacao-preprocessing.md → Plano
@@ -312,6 +333,7 @@ Code review: inference_api/app/
 ---
 
 **Última atualização:** 2025-11-03 (v1.3.0)
-**Documentos:** 15 arquivos principais
+**Documentos:** 16 arquivos principais (incluindo ACADEMY.md)
 **Notebooks:** 2 (básico + avançado)
+**Autor:** Wendell Barreto (wendellbarreto@gmail.com)
 

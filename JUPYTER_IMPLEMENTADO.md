@@ -1,5 +1,7 @@
 # ✅ Jupyter Container Implementado (Opção 1)
 
+> **Autor:** Wendell Barreto (wendellbarreto@gmail.com)
+
 **Data:** 2025-11-02
 **Status:** Completo e testável
 
