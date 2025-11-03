@@ -1,4 +1,4 @@
-.PHONY: help build up down restart logs logs-orthanc logs-api clean test-api status
+.PHONY: help build up down restart rebuild logs logs-orthanc logs-api clean test-api test-health status
 
 # Variáveis
 COMPOSE = docker compose
@@ -19,6 +19,18 @@ down: ## Para e remove todos os containers
 	$(COMPOSE) down
 
 restart: down up ## Reinicia todos os serviços
+
+rebuild: ## Rebuild completo da API (use após mudar código Python)
+	@echo "🔄 Parando containers..."
+	$(COMPOSE) down
+	@echo "🔨 Reconstruindo imagem da API..."
+	$(COMPOSE) build inference-api
+	@echo "🚀 Subindo containers..."
+	$(COMPOSE) up -d
+	@echo "⏳ Aguardando modelo carregar (10s)..."
+	@sleep 10
+	@echo "✅ Testando saúde da API..."
+	@curl -s $(API_URL)/health | grep -q "healthy" && echo "✓ API está saudável!" || echo "✗ API com problemas"
 
 logs: ## Mostra logs de todos os serviços
 	$(COMPOSE) logs -f
@@ -44,6 +56,12 @@ test-orthanc: ## Testa se o Orthanc está respondendo
 	@curl -s $(ORTHANC_URL)/app/explorer.html > /dev/null && echo "✓ Orthanc está respondendo em $(ORTHANC_URL)" || echo "✗ Orthanc não está respondendo"
 
 test: test-orthanc test-api ## Testa se todos os serviços estão respondendo
+
+test-health: ## Testa saúde da API e mostra labels do modelo
+	@echo "🏥 Verificando saúde da API..."
+	@curl -s $(API_URL)/health | jq
+	@echo "\n📊 Labels detectáveis pelo modelo:"
+	@curl -s $(API_URL)/labels | jq '.count'
 
 shell-api: ## Abre shell no container da API
 	$(COMPOSE) exec inference-api /bin/bash

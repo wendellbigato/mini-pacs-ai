@@ -67,7 +67,7 @@ async def health_check():
 
 
 @app.post("/predict", response_model=PredictionResponse, tags=["Inference"])
-async def predict(dicom_file: UploadFile = File(..., description="Arquivo DICOM para inferência")):
+async def predict(dicom_file: UploadFile = File(..., description="Arquivo DICOM para inferência", media_type="application/dicom")):
     """
     Realiza predição de achados radiológicos em uma imagem DICOM.
 

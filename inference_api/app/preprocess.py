@@ -68,7 +68,7 @@ def get_dicom_metadata(dicom_bytes: bytes) -> dict:
         "patient_id": str(dcm.get("PatientID", "N/A")),
         "study_date": str(dcm.get("StudyDate", "N/A")),
         "modality": str(dcm.get("Modality", "N/A")),
-        "image_shape": dcm.pixel_array.shape if hasattr(dcm, "pixel_array") else None,
+        "image_shape": str(dcm.pixel_array.shape) if hasattr(dcm, "pixel_array") else "N/A",
     }
 
     return metadata

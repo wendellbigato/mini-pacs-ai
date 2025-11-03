@@ -86,13 +86,25 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
-### Planejado
+### Planejado - Prioridade Alta
 - Testes unitários e de integração
-- Suporte a GPU para inferência
 - Autenticação no Orthanc
-- Batch processing de múltiplos DICOMs
+- Validação robusta de inputs
+- Configuração via variáveis de ambiente
+
+### Planejado - Prioridade Média
 - Cache de resultados
+- Rate limiting
 - Métricas com Prometheus/Grafana
 - CI/CD pipeline
+
+### Extras - Prioridade Baixa (Opcional)
+- Suporte a GPU para inferência
+- Batch processing de múltiplos DICOMs
+- Persistência de DICOMs em AWS S3 (substituir volume local por bucket S3)
+- Multi-stage Docker build
+- Documentação OpenAPI 3.1 avançada
+
+**Nota:** Itens acima são melhorias extras, não fazem parte do roadmap principal. Ver `docs/plans/extras-futuras.md` para detalhes.
 
 [1.0.0]: https://github.com/wendellbarreto/mini-pacs-ai/releases/tag/v1.0.0

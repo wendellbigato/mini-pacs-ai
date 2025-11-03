@@ -179,6 +179,15 @@ Workflow implementado em `notebooks/orthanc_inference.ipynb`:
 3. **DICOM Send**: Envio de resultados de volta ao PACS
 4. **Auditoria**: Log de todas as predições para compliance
 
+### Extras (Opcional)
+
+1. **Persistência em Cloud (AWS S3)**: Migrar armazenamento de DICOMs para bucket S3
+   - Integração com Orthanc S3 Plugin
+   - Redução de custos de infraestrutura
+   - Escalabilidade e backup automático
+   - Acesso distribuído entre múltiplas instâncias
+   - Ver `docs/plans/extras-futuras.md` para detalhes de implementação
+
 ## 7. Conclusão
 
 O projeto demonstra um fluxo completo de processamento de imagens médicas, desde o armazenamento DICOM até a inferência com deep learning. A arquitetura modular permite fácil extensão e manutenção.
