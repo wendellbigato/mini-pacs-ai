@@ -1,0 +1,63 @@
+# ============================================
+# OPÇÃO 1: Jupyter Dedicado (RECOMENDADO)
+# ============================================
+# Adicione este bloco ao docker-compose.yml existente
+
+services:
+  orthanc:
+    image: orthancteam/orthanc:latest
+    container_name: orthanc
+    restart: unless-stopped
+    ports:
+      - "8042:8042"
+      - "4242:4242"
+    volumes:
+      - ./orthanc/data:/var/lib/orthanc/db
+      - ./orthanc/orthanc.json:/etc/orthanc/orthanc.json:ro
+    networks:
+      - pacs-network
+
+  inference-api:
+    build: ./inference_api
+    container_name: inference-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    depends_on:
+      - orthanc
+    networks:
+      - pacs-network
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  # ===== NOVO SERVIÇO JUPYTER =====
+  jupyter:
+    build: ./notebooks
+    container_name: jupyter
+    restart: unless-stopped
+    ports:
+      - "8888:8888"  # Porta Jupyter
+    volumes:
+      - ./notebooks:/workspace  # Monta notebooks como volume
+    depends_on:
+      - orthanc
+      - inference-api
+    networks:
+      - pacs-network
+    environment:
+      - JUPYTER_ENABLE_LAB=yes  # Habilita JupyterLab (opcional)
+    # URLs INTERNAS no notebook:
+    # - http://orthanc:8042 (em vez de localhost:8042)
+    # - http://inference-api:8000 (em vez de localhost:8000)
+
+networks:
+  pacs-network:
+    driver: bridge
+
+# COMO USAR:
+# 1. docker compose -f docker-compose.opcao1.yml up -d
+# 2. Acesse: http://localhost:8888
+# 3. Abra orthanc_inference.ipynb
+# 4. Mude as URLs no notebook:
+#    ORTHANC_URL = "http://orthanc:8042"
+#    INFERENCE_API_URL = "http://inference-api:8000"

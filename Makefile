@@ -1,4 +1,4 @@
-.PHONY: help build up down restart rebuild logs logs-orthanc logs-api clean test-api test-health status
+.PHONY: help build up down restart rebuild logs logs-orthanc logs-api logs-jupyter clean test-api test-health status jupyter jupyter-stop
 
 # Variáveis
 COMPOSE = docker compose
@@ -41,6 +41,9 @@ logs-orthanc: ## Mostra logs do Orthanc
 logs-api: ## Mostra logs da API de inferência
 	$(COMPOSE) logs -f inference-api
 
+logs-jupyter: ## Mostra logs do Jupyter
+	$(COMPOSE) logs -f jupyter
+
 status: ## Mostra status dos containers
 	$(COMPOSE) ps
 
@@ -68,6 +71,22 @@ shell-api: ## Abre shell no container da API
 
 shell-orthanc: ## Abre shell no container do Orthanc
 	$(COMPOSE) exec orthanc /bin/bash
+
+jupyter: ## Sobe Jupyter e exibe URL de acesso
+	@echo "🚀 Subindo Jupyter Notebook..."
+	$(COMPOSE) up -d jupyter
+	@echo "⏳ Aguardando Jupyter iniciar..."
+	@sleep 5
+	@echo ""
+	@echo "✅ Jupyter está rodando!"
+	@echo "📓 Acesse: http://localhost:8888"
+	@echo "📁 Notebooks em: /workspace"
+	@echo ""
+	@echo "Para ver logs: make logs-jupyter"
+
+jupyter-stop: ## Para apenas o Jupyter (mantém outros serviços)
+	$(COMPOSE) stop jupyter
+	@echo "🛑 Jupyter parado (outros serviços continuam rodando)"
 
 dev: ## Sobe os serviços e mostra os logs
 	$(COMPOSE) up

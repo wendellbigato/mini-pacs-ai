@@ -108,23 +108,36 @@ print(response.json())
 
 ### Executar o Notebook de Integração
 
-1. Instale as dependências do notebook:
+**Opção 1: Via Docker** (Recomendado - sem instalar dependências localmente)
 
 ```bash
-pip install requests pydicom matplotlib pandas
+# Subir Jupyter no Docker
+make jupyter
+
+# Acesse: http://localhost:8888
+# Abra: orthanc_inference.ipynb
+# Execute todas as células (Cell → Run All)
 ```
 
-2. Abra o Jupyter:
+**Opção 2: Localmente**
 
 ```bash
+# Instalar dependências
+pip install -r notebooks/requirements.txt
+
+# Abrir Jupyter
 jupyter notebook notebooks/orthanc_inference.ipynb
+
+# IMPORTANTE: Se rodar localmente, modifique as URLs na célula 2:
+# ORTHANC_URL = "http://localhost:8042"
+# INFERENCE_API_URL = "http://localhost:8000"
 ```
 
-3. Execute as células sequencialmente. O notebook irá:
-   - Listar todas as instâncias DICOM no Orthanc
-   - Baixar cada instância
-   - Enviar para a API de inferência
-   - Exibir a imagem e as probabilidades
+O notebook irá:
+- Listar todas as instâncias DICOM no Orthanc
+- Baixar cada instância
+- Enviar para a API de inferência
+- Exibir a imagem e as probabilidades
 
 ## 🛠️ Comandos Make Disponíveis
 
@@ -138,11 +151,14 @@ make rebuild        # Rebuild completo da API (use após mudar código Python)
 make logs           # Mostra logs de todos os serviços
 make logs-orthanc   # Mostra logs apenas do Orthanc
 make logs-api       # Mostra logs apenas da API
+make logs-jupyter   # Mostra logs apenas do Jupyter
 make status         # Mostra status dos containers
 make test           # Testa se todos os serviços estão respondendo
 make test-orthanc   # Testa apenas o Orthanc
 make test-api       # Testa apenas a API
 make test-health    # Testa saúde da API e mostra labels do modelo
+make jupyter        # Sobe Jupyter e exibe URL de acesso
+make jupyter-stop   # Para apenas o Jupyter (mantém outros serviços)
 make clean          # Remove containers, volumes e imagens
 make shell-api      # Abre shell no container da API
 make shell-orthanc  # Abre shell no container do Orthanc

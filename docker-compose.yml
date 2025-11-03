@@ -25,6 +25,22 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
 
+  jupyter:
+    build: ./notebooks
+    container_name: jupyter
+    restart: unless-stopped
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./notebooks:/workspace
+    depends_on:
+      - orthanc
+      - inference-api
+    networks:
+      - pacs-network
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+
 networks:
   pacs-network:
     driver: bridge
