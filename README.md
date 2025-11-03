@@ -134,6 +134,7 @@ make build          # Constrói as imagens Docker
 make up             # Sobe todos os serviços em background
 make down           # Para e remove todos os containers
 make restart        # Reinicia todos os serviços
+make rebuild        # Rebuild completo da API (use após mudar código Python)
 make logs           # Mostra logs de todos os serviços
 make logs-orthanc   # Mostra logs apenas do Orthanc
 make logs-api       # Mostra logs apenas da API
@@ -141,6 +142,7 @@ make status         # Mostra status dos containers
 make test           # Testa se todos os serviços estão respondendo
 make test-orthanc   # Testa apenas o Orthanc
 make test-api       # Testa apenas a API
+make test-health    # Testa saúde da API e mostra labels do modelo
 make clean          # Remove containers, volumes e imagens
 make shell-api      # Abre shell no container da API
 make shell-orthanc  # Abre shell no container do Orthanc
@@ -154,6 +156,10 @@ mini-pacs-ai/
 ├── Makefile                    # Comandos para gerenciar o projeto
 ├── docker-compose.yml          # Orquestração dos serviços
 ├── README.md                   # Este arquivo
+├── CHANGELOG.md                # Histórico de mudanças
+├── TESTE_API.md                # Guia de testes da API /predict
+├── REBUILD_INSTRUCOES.md       # Quando fazer rebuild vs restart
+├── test_predict.py             # Script de teste da API
 ├── orthanc/
 │   ├── orthanc.json           # Configuração do Orthanc
 │   └── data/                  # Volume persistente (criado automaticamente)
@@ -167,9 +173,16 @@ mini-pacs-ai/
 │       ├── preprocess.py      # Pré-processamento DICOM
 │       └── schemas.py         # Schemas Pydantic
 ├── notebooks/
-│   └── orthanc_inference.ipynb # Notebook de integração
+│   ├── orthanc_inference.ipynb # Notebook de integração
+│   └── requirements.txt        # Dependências do notebook
+├── docs/
+│   └── plans/
+│       ├── inprogress/
+│       │   └── todos-implementacao.md
+│       ├── done/
+│       └── extras-futuras.md   # Melhorias extras (AWS S3, etc.)
 └── report/
-    └── desafio_neuralmind.pdf # Relatório técnico (a ser gerado)
+    └── desafio_neuralmind.md   # Relatório técnico (.pdf a ser gerado)
 ```
 
 ## 🔬 API Endpoints
@@ -296,6 +309,35 @@ Certifique-se de que os serviços estão rodando:
 
 ```bash
 make test
+```
+
+### Erro 422 ou 500 ao testar /predict
+
+Se modificou o código Python da API:
+
+```bash
+# IMPORTANTE: Não basta fazer restart, precisa rebuild
+make rebuild
+
+# Isso faz automaticamente:
+# - Para os containers
+# - Reconstrói a imagem com código atualizado
+# - Sobe os containers
+# - Testa saúde da API
+```
+
+**Documentação completa:** Ver `TESTE_API.md` e `REBUILD_INSTRUCOES.md`
+
+### Script de teste rápido
+
+```bash
+# Testar endpoint /predict com arquivo DICOM
+python test_predict.py /caminho/para/arquivo.dcm
+
+# Mostra:
+# - Top 10 achados radiológicos com probabilidades
+# - Metadados do DICOM
+# - Barra de progresso visual
 ```
 
 ## 📚 Referências

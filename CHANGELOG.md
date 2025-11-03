@@ -84,6 +84,43 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ---
 
+## [1.0.1] - 2025-11-02
+
+### Corrigido
+
+#### Bug Fixes - API /predict
+- **Erro 422 Unprocessable Entity**: Corrigido schema do endpoint `/predict` adicionando `media_type="application/dicom"` ao parâmetro `File()` (inference_api/app/main.py:70)
+- **Erro 500 Internal Server Error**: Corrigido validação Pydantic do campo `image_shape` convertendo tupla para string em `preprocess.py:71`
+- Problema: Swagger UI estava enviando string em vez de UploadFile
+- Problema: Metadados retornavam `image_shape` como tupla `(2566, 2598)` em vez de string
+
+#### Infraestrutura
+- Removido atributo `version: '3.8'` obsoleto do `docker-compose.yml` (compatibilidade Docker Compose v2+)
+
+### Adicionado
+
+#### Makefile
+- Comando `make rebuild`: Rebuild automático completo da API (down + build + up + health check)
+- Comando `make test-health`: Verificação de saúde da API com contagem de labels
+
+#### Documentação
+- `TESTE_API.md`: Guia completo de como testar a API /predict com troubleshooting
+- `REBUILD_INSTRUCOES.md`: Documentação sobre quando e como fazer rebuild vs restart
+- `test_predict.py`: Script Python para testes automatizados do endpoint /predict com visualização de resultados
+- `docs/plans/extras-futuras.md`: Documentação de melhorias extras (AWS S3, GPU, etc.)
+
+### Melhorado
+- Logs de startup da API mais informativos
+- Processo de rebuild documentado e automatizado
+- Instruções de troubleshooting expandidas no README
+
+### Notas Técnicas
+- Após modificar código Python (arquivos `.py`), é obrigatório fazer `make rebuild` em vez de apenas `make restart`
+- O restart apenas reinicia containers sem reconstruir a imagem Docker
+- Build em cache mantém dependências (apenas camada `COPY app` é reconstruída se requirements.txt não mudou)
+
+---
+
 ## [Unreleased]
 
 ### Planejado - Prioridade Alta
@@ -107,4 +144,5 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 **Nota:** Itens acima são melhorias extras, não fazem parte do roadmap principal. Ver `docs/plans/extras-futuras.md` para detalhes.
 
+[1.0.1]: https://github.com/wendellbarreto/mini-pacs-ai/releases/tag/v1.0.1
 [1.0.0]: https://github.com/wendellbarreto/mini-pacs-ai/releases/tag/v1.0.0

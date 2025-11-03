@@ -98,6 +98,40 @@ Workflow implementado em `notebooks/orthanc_inference.ipynb`:
 
 **Solução**: Pin de versões específicas no `requirements.txt` após testes de compatibilidade.
 
+### 3.5. Validação de Upload no Swagger UI (Erro 422)
+
+**Problema**: Swagger UI enviando string em vez de arquivo binário ao testar endpoint `/predict`.
+
+**Erro**: `422 Unprocessable Entity - Expected UploadFile, received: <class 'str'>`
+
+**Solução**: Adicionado parâmetro `media_type="application/dicom"` no `File()` do FastAPI:
+```python
+File(..., description="...", media_type="application/dicom")
+```
+
+### 3.6. Type Mismatch em Metadados DICOM (Erro 500)
+
+**Problema**: Campo `image_shape` retornando tupla Python em vez de string, violando schema Pydantic.
+
+**Erro**: `Input should be a valid string [type=string_type, input_value=(2566, 2598), input_type=tuple]`
+
+**Solução**: Conversão explícita para string no `preprocess.py`:
+```python
+"image_shape": str(dcm.pixel_array.shape) if hasattr(dcm, "pixel_array") else "N/A"
+```
+
+### 3.7. Rebuild vs Restart em Docker
+
+**Problema**: Após modificar código Python, fazer apenas `docker compose restart` não aplicava mudanças.
+
+**Causa**: O restart reinicia containers mas não reconstrói a imagem Docker com o código atualizado.
+
+**Solução**:
+- Criado comando `make rebuild` que faz: down → build → up → health check
+- Documentação clara sobre quando usar rebuild vs restart
+- Arquivos `.py` modificados → rebuild obrigatório
+- Arquivos de config modificados → restart suficiente
+
 ## 4. Aprendizados Novos
 
 ### 4.1. TorchXRayVision
