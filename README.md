@@ -236,7 +236,12 @@ mini-pacs-ai/
 │   ├── orthanc_analysis.ipynb      # Análise completa (4 seções)
 │   └── requirements.txt
 │
-├── test_predict.py                 # Script de teste da API
+├── tests/                          # Scripts de teste
+│   ├── README.md                   # Documentação de testes
+│   ├── test_predict.py             # Teste /predict
+│   ├── test_generate_masks.py      # Teste /generate_masks ⭐
+│   └── test_compare_preprocessing.py # Teste comparação métodos
+│
 └── report/
     └── desafio_neuralmind.md       # Relatório técnico
 ```
