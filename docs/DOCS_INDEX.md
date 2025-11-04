@@ -10,16 +10,10 @@
 ### 🎓 Trilha de Aprendizado Completa
 
 **[ACADEMY.md](./ACADEMY.md)** ⭐ **APRENDA DO BÁSICO AO AVANÇADO**
-- **Estrutura modular:** 7 módulos independentes em `docs/academy/`
-- Módulo 1: Fundamentos PACS e DICOM
-- Módulo 2: IA em Radiologia
-- Módulo 3: Explicabilidade (Grad-CAM)
-- Módulo 4: Arquitetura da Aplicação
-- Módulo 5: Implementação Técnica
-- Módulo 6: Discovery e Insights de Desenvolvimento
-- Módulo 7: Uso Clínico e Regulamentação
-- **2700+ linhas** com explicações detalhadas, diagramas e código
-- **~8 horas** de conteúdo total
+- **Guia rápido:** 30 minutos de leitura
+- 6 seções: PACS/DICOM, IA, Grad-CAM, Arquitetura, Implementação, Uso Clínico
+- Inclui checklist de compreensão
+- **Versão detalhada:** [academy-detalhada/](./academy-detalhada/) (7 módulos, ~8h)
 
 ---
 

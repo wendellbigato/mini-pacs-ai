@@ -1,279 +1,471 @@
-# 🎓 Academia Mini PACS AI - Trilha de Aprendizado Completa
+# 🎓 Academia Mini PACS AI - Guia Rápido
 
 > **Autor:** Wendell Barreto (wendellbarreto@gmail.com)
 > **Versão:** 1.3.0+
-> **Objetivo:** Guia educacional completo do básico ao avançado sobre PACS, DICOM, IA em Radiologia e implementação prática
-> **Última atualização:** 2025-11-04
+> **Duração:** 30 minutos
+> **Objetivo:** Visão geral completa do projeto - do conceito à produção
 
 ---
 
-## 🎯 Sobre Esta Academia
+## 🎯 O Que Você Vai Aprender
 
-Esta academia oferece uma **trilha de aprendizado completa** para entender todos os aspectos do projeto Mini PACS AI, desde fundamentos de imagens médicas até implementação prática de IA em radiologia.
+Em 30 minutos você vai entender:
+- ✅ Como funciona um PACS e o padrão DICOM
+- ✅ Como IA detecta patologias em raio-X
+- ✅ Por que Grad-CAM é essencial para explicabilidade
+- ✅ Arquitetura multi-container do sistema
+- ✅ Como usar em ambiente clínico real
+- ✅ Regulamentação e responsabilidades
 
-**Total de conteúdo:** ~8 horas de estudo
-**Formato:** 7 módulos progressivos
-**Nível:** Do básico ao avançado
-
----
-
-## 📚 Módulos da Trilha
-
-### [Módulo 1: Fundamentos de Imagens Médicas](./academy/modulo1-fundamentos-pacs-dicom.md)
-**Duração:** 45-60 minutos | **Pré-requisitos:** Nenhum
-
-**O que você vai aprender:**
-- O que é PACS e por que é importante
-- Padrão DICOM: estrutura, tags, hierarquia
-- Orthanc: PACS open source
-- Workflow radiológico tradicional vs com IA
-
-**Tópicos:**
-- 1.1 O que é PACS?
-- 1.2 O padrão DICOM
-- 1.3 Orthanc: PACS Open Source
-- 1.4 Workflow Radiológico
+> **Nota:** Versão detalhada (8h) disponível em [academy-detalhada/](./academy-detalhada/)
 
 ---
 
-### [Módulo 2: Inteligência Artificial em Radiologia](./academy/modulo2-ia-radiologia.md)
-**Duração:** 60-75 minutos | **Pré-requisitos:** Módulo 1
+# 1. Fundamentos PACS e DICOM (5 min)
 
-**O que você vai aprender:**
-- Como Deep Learning detecta patologias em raio-X
-- TorchXRayVision: biblioteca especializada
-- Modelos pré-treinados (DenseNet121)
-- Transfer Learning vs Training from Scratch
+## O que é PACS?
 
-**Tópicos:**
-- 2.1 Deep Learning para Raio-X
-- 2.2 TorchXRayVision
-- 2.3 Modelos Pré-Treinados
-- 2.4 Transfer Learning vs Training from Scratch
+**PACS** (Picture Archiving and Communication System) = sistema para armazenar, recuperar e distribuir imagens médicas digitais.
 
----
+**Antes do PACS:** Filmes físicos, perda de exames, impossível ver remotamente
+**Com PACS:** Tudo digital, backup automático, acesso instantâneo de qualquer lugar
 
-### [Módulo 3: Explicabilidade e Interpretabilidade](./academy/modulo3-explicabilidade.md)
-**Duração:** 90-120 minutos | **Pré-requisitos:** Módulos 1-2
+## DICOM: O Padrão Mundial
 
-**O que você vai aprender:**
-- Por que explicabilidade é crítica em IA médica
-- Grad-CAM: visualização de atenção do modelo
-- Máscaras de segmentação automáticas
-- Ground Truth vs Grad-CAM: quando usar cada um
+**DICOM** = formato de arquivo + protocolo de comunicação para imagens médicas
 
-**Tópicos:**
-- 3.1 O Problema da Caixa Preta
-- 3.2 Grad-CAM: Class Activation Maps
-- 3.3 Máscaras de Segmentação
-- 3.4 Ground Truth vs Predição
+```
+arquivo.dcm
+├─ HEADER (metadados: paciente, data, equipamento)
+└─ PIXEL DATA (a imagem em si)
+```
 
----
+**Hierarquia DICOM:**
+```
+PATIENT → STUDY → SERIES → INSTANCE
+```
 
-### [Módulo 4: Arquitetura da Aplicação](./academy/modulo4-arquitetura.md)
-**Duração:** 90-120 minutos | **Pré-requisitos:** Módulos 1-3
+**Exemplo:**
+```
+João Silva → Raio-X Tórax (2025-11-04) → Série PA → imagem_001.dcm
+```
 
-**O que você vai aprender:**
-- Arquitetura multi-container Docker
-- Comunicação entre serviços (Orthanc, API, Jupyter)
-- FastAPI para inferência
-- Notebooks para análise interativa
+## Orthanc: PACS Open Source
 
-**Tópicos:**
-- 4.1 Visão Geral do Sistema
-- 4.2 Container Orthanc (PACS)
-- 4.3 API de Inferência (FastAPI)
-- 4.4 Jupyter para Análise
-- 4.5 Comunicação entre Serviços
+**Por que Orthanc?**
+- ✅ Open source, leve, roda em Docker
+- ✅ REST API completa (GET /instances, POST /instances)
+- ✅ Ideal para desenvolvimento e pequenos hospitais
+
+**Endpoints principais:**
+```bash
+GET /instances          # Listar todas as imagens
+GET /instances/{id}/file # Baixar DICOM
+GET /instances/{id}/tags # Ver metadados
+```
 
 ---
 
-### [Módulo 5: Implementação Técnica](./academy/modulo5-implementacao.md)
-**Duração:** 120-150 minutos | **Pré-requisitos:** Módulos 1-4
+# 2. IA em Radiologia (5 min)
 
-**O que você vai aprender:**
-- Pré-processamento DICOM (método oficial vs anterior)
-- Pipeline completo de inferência
-- Geração de heatmaps e máscaras
-- Validação científica com IoU
+## TorchXRayVision
 
-**Tópicos:**
-- 5.1 Pré-Processamento DICOM
-- 5.2 Pipeline de Inferência
-- 5.3 Geração de Heatmaps
-- 5.4 Validação Científica
+Biblioteca PyTorch especializada em raio-X com modelos pré-treinados.
 
----
+**Modelo usado:** DenseNet121
+- Treinado em 224.316 raio-X (NIH + CheXpert + MIMIC)
+- Detecta 18 achados radiológicos
+- AUC-ROC médio: 0.84 (bom desempenho)
 
-### [Módulo 6: Discovery e Insights de Desenvolvimento](./academy/modulo6-discovery.md)
-**Duração:** 60-90 minutos | **Pré-requisitos:** Módulos 1-5
+## Como Funciona?
 
-**O que você vai aprender:**
-- Desafios técnicos encontrados
-- Decisões de arquitetura e suas justificativas
-- Evolução do projeto (v1.0.0 → v1.3.0+)
-- Lições aprendidas no desenvolvimento
+```python
+import torchxrayvision as xrv
 
-**Tópicos:**
-- 6.1 Desafios Encontrados
-- 6.2 Decisões de Arquitetura
-- 6.3 Evolução do Projeto
-- 6.4 Lições Aprendidas
+# 1. Carregar modelo (já treinado!)
+model = xrv.models.DenseNet(weights="densenet121-res224-all")
 
----
+# 2. Pré-processar imagem DICOM
+img = preprocess_dicom(dicom_bytes)  # → [1, 1, 224, 224]
 
-### [Módulo 7: Uso Clínico e Regulamentação](./academy/modulo7-uso-clinico.md)
-**Duração:** 90-120 minutos | **Pré-requisitos:** Todos os anteriores
+# 3. Predição
+outputs = model(img)
+probs = torch.sigmoid(outputs)  # Multi-label
 
-**O que você vai aprender:**
-- CAD vs Diagnostic AI: diferenças legais
-- Responsabilidades do médico radiologista
-- Regulamentação FDA (USA) e ANVISA (Brasil)
-- Como validar clinicamente um sistema de IA
+# 4. Resultado
+# {'Cardiomegaly': 0.85, 'Effusion': 0.72, ...}
+```
 
-**Tópicos:**
-- 7.1 CAD vs Diagnostic AI
-- 7.2 Responsabilidades do Médico
-- 7.3 Regulamentação (FDA/ANVISA)
-- 7.4 Validação Clínica
+## 18 Achados Detectados
+
+Cardiomegaly, Effusion, Pneumonia, Pneumothorax, Atelectasis, Consolidation, Edema, Emphysema, Fibrosis, Mass, Nodule, Infiltration, Pleural_Thickening, Enlarged_Cardiomediastinum, Lung_Opacity, Lung_Lesion, Fracture, Support_Devices
 
 ---
 
-## 🎓 Trilhas de Estudo Recomendadas
+# 3. Explicabilidade com Grad-CAM (5 min)
 
-### Para Desenvolvedores Backend
-\`\`\`
-Módulo 1 (fundamentos) → Módulo 4 (arquitetura) → Módulo 5 (implementação)
-Tempo total: ~5 horas
-\`\`\`
+## O Problema da Caixa Preta
 
-### Para Data Scientists / Pesquisadores
-\`\`\`
-Módulo 2 (IA) → Módulo 3 (explicabilidade) → Módulo 5 (implementação) → Módulo 6 (discovery)
-Tempo total: ~6 horas
-\`\`\`
+```
+IA: "Probabilidade de pneumonia: 87%"
+Médico: "ONDE você viu pneumonia?"
+IA sem explicabilidade: "..." ❌
+```
 
-### Para Médicos Radiologistas
-\`\`\`
-Módulo 1 (fundamentos) → Módulo 2 (IA - básico) → Módulo 3 (explicabilidade) → Módulo 7 (uso clínico)
-Tempo total: ~5 horas
-\`\`\`
+**Problemas:**
+- Médico não pode validar
+- FDA/ANVISA não aprovam
+- Impossível ensinar residentes
 
-### Trilha Completa (Recomendado)
-\`\`\`
-Módulos 1 → 2 → 3 → 4 → 5 → 6 → 7
-Tempo total: ~8 horas
-\`\`\`
+## Grad-CAM: A Solução
 
----
+**Grad-CAM** = mostra **onde** o modelo "olhou" para fazer a predição
 
-## 📖 Estrutura de Cada Módulo
+**Como funciona:**
+1. Modelo faz predição
+2. Calcula gradientes da última camada convolucional
+3. Gera heatmap mostrando regiões de atenção
+4. Sobrepõe heatmap na imagem original
 
-Cada módulo segue a mesma estrutura para facilitar o aprendizado:
+```python
+def generate_gradcam(model, img, class_idx):
+    # 1. Forward pass
+    output = model(img)
 
-- **📋 Metadados:** Duração, pré-requisitos
-- **📚 Conteúdo teórico:** Conceitos fundamentais
-- **💻 Exemplos práticos:** Código Python, YAML, Bash
-- **📊 Diagramas:** Visualizações ASCII e descrições
-- **🔗 Navegação:** Links para módulo anterior e próximo
+    # 2. Backward pass
+    target = output[0, class_idx]
+    target.backward()
 
----
+    # 3. Calcular pesos dos feature maps
+    gradients = get_gradients()  # [C, H, W]
+    weights = gradients.mean(axis=(1,2))  # [C]
 
-## 🚀 Como Começar
+    # 4. Weighted sum
+    cam = (weights * features).sum(axis=0)  # [H, W]
 
-### 1. **Primeiro Contato (30 min)**
-Comece pelo [Módulo 1](./academy/modulo1-fundamentos-pacs-dicom.md) para entender os fundamentos de PACS e DICOM.
+    # 5. Normalizar e redimensionar
+    cam = normalize(cam)  # [0, 1]
+    cam = resize(cam, (224, 224))
 
-### 2. **Escolha Sua Trilha**
-Selecione uma das trilhas recomendadas acima baseado no seu perfil.
+    return cam  # Heatmap!
+```
 
-### 3. **Estude no Seu Ritmo**
-Cada módulo é independente após completar os pré-requisitos. Você pode pausar e retomar quando quiser.
+## Máscaras de Segmentação
 
-### 4. **Pratique**
-- Execute os exemplos de código
-- Teste os comandos Docker
-- Explore o notebook \`orthanc_analysis.ipynb\`
+**Threshold no heatmap = máscara binária**
 
----
+```python
+mask = (heatmap > 0.5).astype(uint8)  # {0, 1}
+```
 
-## 📚 Recursos Complementares
+**Threshold adaptativo:**
+- Prob > 0.7 → threshold 0.6 (mais focado)
+- Prob > 0.5 → threshold 0.5 (médio)
+- Prob < 0.5 → threshold 0.4 (mais amplo)
 
-Além dos módulos da Academia, consulte:
+## Ground Truth vs Grad-CAM
 
-- **[README.md](../README.md)** - Visão geral do projeto
-- **[DOCS_INDEX.md](./DOCS_INDEX.md)** - Índice completo da documentação
-- **[API.md](./API.md)** - Referência completa dos endpoints
-- **[CLINICAL_USAGE.md](./CLINICAL_USAGE.md)** - Guia para médicos radiologistas
-- **[CHANGELOG.md](../CHANGELOG.md)** - Histórico de versões
+| Aspecto | Ground Truth | Grad-CAM |
+|---------|--------------|----------|
+| Origem | Anotação manual (horas) | Automático (2s) |
+| Exames novos? | ❌ Não | ✅ Sim |
+| Custo | Alto | Zero |
+| Uso | Pesquisa/validação | Produção PACS |
 
----
-
-## 🎯 Objetivos de Aprendizado
-
-Ao completar todos os módulos, você será capaz de:
-
-✅ **Entender** o ecossistema de imagens médicas (PACS, DICOM)
-✅ **Explicar** como IA detecta patologias em raio-X
-✅ **Implementar** pipeline completo de inferência
-✅ **Desenvolver** aplicações similares com TorchXRayVision
-✅ **Validar** sistemas de IA médica cientificamente
-✅ **Compreender** requisitos regulatórios (FDA/ANVISA)
-✅ **Aplicar** conhecimentos em ambiente clínico real
+**Decisão:** Usamos Grad-CAM em produção porque funciona em exames novos sem anotação prévia.
 
 ---
 
-## 💡 Dicas de Estudo
+# 4. Arquitetura do Sistema (5 min)
 
-**Para melhor aproveitamento:**
+## Visão Geral
 
-1. **Siga a ordem** dos módulos (são progressivos)
-2. **Execute os exemplos** de código localmente
-3. **Teste os comandos** Docker e API
-4. **Explore o notebook** Jupyter incluído
-5. **Consulte as referências** externas citadas
-6. **Faça anotações** dos conceitos principais
-7. **Pratique** modificando os exemplos
+```
+┌──────────────────────────────────────────────────────────┐
+│                     MINI PACS AI                         │
+│                                                          │
+│  ┌────────────┐      ┌────────────┐      ┌────────────┐│
+│  │            │      │            │      │            ││
+│  │  ORTHANC   │ ───→ │ INFERENCE  │ ───→ │  JUPYTER   ││
+│  │   (PACS)   │      │    API     │      │  NOTEBOOK  ││
+│  │            │      │  (FastAPI) │      │            ││
+│  └────────────┘      └────────────┘      └────────────┘│
+│       ↓                    ↓                    ↓       │
+│   Port 8042           Port 8000            Port 8888    │
+│   REST API           /generate_masks ⭐    Analysis     │
+└──────────────────────────────────────────────────────────┘
+```
 
-**Não pule os pré-requisitos!** Cada módulo assume conhecimento dos anteriores.
+## 3 Containers Docker
+
+**1. Orthanc (PACS)**
+```yaml
+orthanc:
+  image: orthancteam/orthanc:latest
+  ports: ["8042:8042"]
+  volumes: ["./orthanc/data:/var/lib/orthanc/db"]
+```
+
+**2. Inference API (FastAPI + TorchXRayVision)**
+```yaml
+inference-api:
+  build: ./inference_api
+  ports: ["8000:8000"]
+```
+
+**3. Jupyter (Análise)**
+```yaml
+jupyter:
+  build: ./notebooks
+  ports: ["8888:8888"]
+  volumes: ["./notebooks:/home/jovyan/work"]
+```
+
+## Fluxo de Dados
+
+```
+1. DICOM → Orthanc (upload via UI)
+2. Jupyter: GET /instances → lista exames
+3. Jupyter: GET /instances/{id}/file → baixa DICOM
+4. Jupyter: POST /generate_masks → envia para API
+5. API: processa + Grad-CAM → retorna máscaras
+6. Jupyter: visualiza resultados
+```
 
 ---
 
-## 🤝 Feedback e Contribuições
+# 5. Implementação Técnica (5 min)
 
-Encontrou algum erro ou tem sugestões de melhoria?
+## Pré-processamento DICOM
 
-- **Email:** wendellbarreto@gmail.com
-- **Melhorias:** Pull requests são bem-vindos!
+**Método oficial TorchXRayVision (adotado v1.3.0+):**
+
+```python
+def preprocess_dicom_official(dcm):
+    # 1. Extrair pixels
+    img = dcm.pixel_array.astype(float)
+
+    # 2. Normalizar para HU scale [-1024, 1024]
+    img = xrv.datasets.normalize(img, 255, reshape=True)
+
+    # 3. Redimensionar 224x224
+    img = cv2.resize(img, (224, 224))
+
+    return torch.from_numpy(img).unsqueeze(0)
+```
+
+**Decisão v1.3.0+:** Método oficial como padrão (~11% melhor que anterior)
+
+## Endpoints da API
+
+### POST /predict
+```bash
+curl -X POST http://localhost:8000/predict \
+  -F "dicom_file=@exam.dcm"
+```
+Retorna probabilidades dos 18 achados.
+
+### POST /generate_masks ⭐ (Recomendado)
+```bash
+curl -X POST http://localhost:8000/generate_masks?top_n=3 \
+  -F "dicom_file=@exam.dcm"
+```
+Retorna probabilidades + heatmaps + máscaras (Grad-CAM).
+
+### POST /compare_preprocessing
+```bash
+curl -X POST http://localhost:8000/compare_preprocessing \
+  -F "dicom_file=@exam.dcm"
+```
+Compara método anterior vs oficial (para pesquisa).
+
+## Notebook: orthanc_analysis.ipynb
+
+**4 Seções:**
+1. **Setup:** Imports, configuração, verificação de serviços
+2. **Pesquisa:** Comparação de métodos (por que oficial é melhor)
+3. **Inferência:** Processa todos os DICOMs do Orthanc
+4. **Máscaras:** Visualização Grad-CAM estilo TorchXRayVision
+
+```python
+# Exemplo: processar todos os exames
+instances = requests.get(f"{ORTHANC_URL}/instances").json()
+
+for instance_id in instances:
+    # 1. Baixar DICOM
+    dicom_bytes = requests.get(
+        f"{ORTHANC_URL}/instances/{instance_id}/file"
+    ).content
+
+    # 2. Enviar para API
+    result = requests.post(
+        f"{API_URL}/generate_masks",
+        files={"dicom_file": dicom_bytes},
+        params={"top_n": 3}
+    ).json()
+
+    # 3. Visualizar
+    display_results(result)
+```
 
 ---
 
-## 📊 Estatísticas da Academia
+# 6. Uso Clínico e Regulamentação (5 min)
 
-- **Total de módulos:** 7
-- **Total de seções:** 28
-- **Total de linhas:** ~2.700
-- **Exemplos de código:** 50+
-- **Diagramas:** 15+
-- **Tabelas:** 20+
-- **Referências externas:** 30+
+## ⚠️ AVISOS CRÍTICOS
+
+### Este Sistema É:
+- ✅ **Auxílio diagnóstico** (segunda opinião)
+- ✅ **Ferramenta de triagem** (priorizar casos urgentes)
+- ✅ **Suporte educacional** (ensinar residentes)
+
+### Este Sistema NÃO É:
+- ❌ **Diagnóstico automático** (decisão final é do médico)
+- ❌ **Substituto do radiologista**
+- ❌ **Aprovado por FDA/ANVISA** (ainda)
+
+## Fluxo de Trabalho Clínico
+
+```
+1. Técnico → Raio-X → DICOM → Orthanc
+2. Sistema → Processa → Máscaras + Probabilidades
+3. Radiologista → Analisa:
+   - Imagem original
+   - Máscaras Grad-CAM (onde o modelo "viu")
+   - Probabilidades (quão confiante)
+4. Radiologista → Valida/Refuta → Laudo Final ✍️
+```
+
+**O médico é SEMPRE responsável pela decisão final!**
+
+## Regulamentação
+
+### FDA (USA) - Class II Medical Device
+- Requer explicação das predições (✅ temos Grad-CAM)
+- Validação clínica obrigatória
+- Post-market surveillance
+
+### ANVISA (Brasil) - RDC 44/2023
+- Software como dispositivo médico
+- Rastreabilidade das decisões (✅ temos)
+- Documentação de validação clínica
+
+### GDPR (Europa)
+- "Right to explanation" (✅ Grad-CAM fornece)
+
+## Responsabilidades do Médico
+
+1. **Validar** predições do sistema (não confiar cegamente)
+2. **Documentar** quando discordar da IA
+3. **Atualizar** conhecimento sobre limitações do modelo
+4. **Reportar** falsos positivos/negativos
+5. **Assumir** responsabilidade legal pelo laudo final
+
+## Limitações do Sistema
+
+- ❌ Não detecta achados fora dos 18 treinados
+- ❌ Sensível a qualidade da imagem (contraste, posicionamento)
+- ❌ Pode errar em casos raros/atípicos
+- ❌ Grad-CAM não é ground truth (precisão ~70-80%)
+- ❌ Performance varia por patologia (pneumonia mais difícil)
+
+## Quando NÃO Usar
+
+- Paciente pediátrico (modelo treinado em adultos)
+- Raio-X portátil (qualidade inferior)
+- Imagens muito degradadas
+- Casos emergenciais (não esperar pela IA)
 
 ---
 
-## 🏆 Certificação
+# 📚 Próximos Passos
 
-Após completar todos os 7 módulos e executar os exemplos práticos, você terá conhecimento equivalente a:
+## Para Começar Agora
 
-- **Desenvolvedor Pleno** em sistemas PACS/DICOM
-- **ML Engineer Junior** em IA médica
-- **Integrador** de sistemas de radiologia
+```bash
+# 1. Clone o repositório
+git clone <repo-url>
+cd mini-pacs-ai
+
+# 2. Suba os serviços
+make build && make up
+
+# 3. Verifique
+make test  # Todos devem estar OK
+
+# 4. Acesse
+http://localhost:8042  # Orthanc UI
+http://localhost:8000/docs  # API Swagger
+http://localhost:8888  # Jupyter
+```
+
+## Para Aprofundar
+
+- **Documentação detalhada:** [academy-detalhada/](./academy-detalhada/) (~8h de conteúdo)
+- **API completa:** [API.md](./API.md)
+- **Uso clínico:** [CLINICAL_USAGE.md](./CLINICAL_USAGE.md)
+- **Troubleshooting:** [TESTE_API.md](./TESTE_API.md)
+
+## Para Desenvolver
+
+**Arquivos principais:**
+```
+inference_api/app/
+├── main.py              # FastAPI endpoints
+├── model.py             # Carrega TorchXRayVision
+├── preprocess_official.py  # Pré-processamento
+├── gradcam.py           # Geração de máscaras
+└── schemas.py           # Pydantic models
+
+notebooks/
+└── orthanc_analysis.ipynb  # Análise completa
+```
+
+**Mudou código Python?**
+```bash
+make rebuild  # IMPORTANTE: restart não basta!
+```
 
 ---
 
-**Comece agora:** [Módulo 1 - Fundamentos de Imagens Médicas](./academy/modulo1-fundamentos-pacs-dicom.md) →
+# 🎯 Checklist de Compreensão
 
-**Boa jornada de aprendizado! 🚀**
+Se você entendeu esta academia, deve conseguir responder:
+
+- [ ] O que é PACS e por que é importante?
+- [ ] Qual a diferença entre DICOM e JPEG?
+- [ ] Como TorchXRayVision detecta patologias?
+- [ ] Por que Grad-CAM é essencial em IA médica?
+- [ ] Qual a arquitetura do sistema (3 containers)?
+- [ ] Qual endpoint usar para gerar máscaras? (`/generate_masks`)
+- [ ] Por que o método oficial de pré-processamento é melhor?
+- [ ] Ground Truth vs Grad-CAM: quando usar cada um?
+- [ ] O sistema substitui o radiologista? (NÃO!)
+- [ ] Quais as limitações do sistema?
+
+**Se respondeu tudo:** ✅ Você está pronto para usar o sistema!
+
+**Se ficou dúvidas:** 📖 Consulte [academy-detalhada/](./academy-detalhada/)
 
 ---
 
-**Versão:** 1.3.0+ | **Última atualização:** 2025-11-04 | **Autor:** Wendell Barreto
+# 📊 Referências Rápidas
+
+**Papers:**
+- Grad-CAM: https://arxiv.org/abs/1610.02391
+- TorchXRayVision: https://arxiv.org/abs/2003.11968
+- DenseNet: https://arxiv.org/abs/1608.06993
+
+**Tecnologias:**
+- Orthanc: https://www.orthanc-server.com/
+- TorchXRayVision: https://github.com/mlmed/torchxrayvision
+- FastAPI: https://fastapi.tiangolo.com/
+
+**Datasets:**
+- NIH ChestX-ray14: https://nihcc.app.box.com/v/ChestXray-NIHCC
+- Teste (Google Drive): https://drive.google.com/file/d/1Decc3rX_5oxF-4VvQxtWVqkV91O_Auf9/view
+
+---
+
+**Versão:** 1.3.0+ | **Data:** 2025-11-04 | **Autor:** Wendell Barreto
+**Tempo de leitura:** 30 minutos | **Documentação detalhada:** [academy-detalhada/](./academy-detalhada/)
