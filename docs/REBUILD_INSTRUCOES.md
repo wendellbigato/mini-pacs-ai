@@ -1,5 +1,7 @@
 # 🔄 Quando e Como Fazer Rebuild
 
+> **Autor:** Wendell Barreto (wendellbarreto@gmail.com)
+
 ## ⚠️ IMPORTANTE: Restart vs Rebuild
 
 ### `docker compose restart`

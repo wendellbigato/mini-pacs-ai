@@ -1,9 +1,111 @@
 # Changelog
 
+> **Autor:** Wendell Barreto (wendellbarreto@gmail.com)
+
 Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
+
+## [1.3.0+] - 2025-11-04
+
+### 🔬 Pesquisa e Decisão Técnica
+
+#### Método de Pré-processamento Oficial Adotado
+- **Pesquisa realizada**: Comparação entre método anterior (normalização [0,1] + z-score) vs método oficial TorchXRayVision (HU scale [-1024, 1024])
+- **Resultado**: Diferença média de **11.32%** nas probabilidades entre métodos
+- **Decisão**: Método oficial TorchXRayVision adotado como padrão em **todos os endpoints**
+- **Razão**: Consistente com treinamento do modelo, evita over-confidence (probabilidades inflacionadas)
+- **Documentação**: `docs/PREPROCESSAMENTO.md` com análise completa da pesquisa
+
+#### Changed
+- **API `/predict`**: Agora usa `use_official_preprocessing=True` por padrão
+- **API `/predict_with_heatmap`**: Agora usa método oficial por padrão
+- Todos os endpoints de inferência atualizados para usar método oficial
+- Método anterior disponível via parâmetro `use_official_preprocessing=False` (legado)
+
+### 🎯 Novo Endpoint Recomendado
+
+#### Added
+- **`POST /generate_masks`**: Endpoint focado em geração de máscaras de segmentação Grad-CAM
+  - Parâmetro `top_n` padrão: 3 (mais focado que /predict_with_heatmap)
+  - Semântica mais clara: específico para máscaras
+  - Documentação dedicada em `docs/API.md`
+  - Usado no notebook principal
+
+#### Deprecated
+- **`POST /predict_with_heatmap`**: Marcado como legacy (mantido para compatibilidade)
+  - Usar `/generate_masks` para gerar máscaras (recomendado)
+
+### 📓 Notebook Unificado
+
+#### Changed
+- **Notebook unificado**: `orthanc_analysis.ipynb` criado (substitui 2 notebooks anteriores)
+- **Estrutura didática**:
+  1. Setup e Configuração
+  2. **Pesquisa**: Escolha do Pré-processamento (demonstra o "por quê")
+  3. Inferência Básica (método oficial)
+  4. Máscaras de Segmentação (Grad-CAM)
+  5. Conclusões
+
+#### Removed
+- `orthanc_inference.ipynb`: Removido (conteúdo integrado ao notebook unificado)
+- `comparison_analysis.ipynb`: Removido (análise de comparação integrada à Seção 2)
+- Seção de heatmaps separada removida (foco apenas em máscaras)
+
+#### Added
+- Função `generate_masks_api()` no notebook (substitui `predict_with_heatmap_api`)
+- Seção 2 (Pesquisa) com comparação visual dos métodos
+- Explicação científica da escolha do método oficial
+- Contexto clínico para médicos radiologistas sobre máscaras Grad-CAM vs Ground Truth
+
+### 📚 Documentação Reorganizada
+
+#### Changed
+- `docs/API.md`:
+  - Novo endpoint `/generate_masks` documentado (⭐ recomendado)
+  - `/predict` agora documenta parâmetro `use_official_preprocessing` (padrão: true)
+  - `/predict_with_heatmap` marcado como legacy
+- `docs/PREPROCESSAMENTO.md`:
+  - Fase 4 atualizada: método oficial como padrão em todos os endpoints
+  - Recomendações atualizadas para usar endpoints padrão
+  - Referências ao notebook unificado
+- `docs/GUIA_NOTEBOOK.md`:
+  - Atualizado para 1 notebook único
+  - Estrutura das 4 seções documentada
+  - Referências aos notebooks antigos removidas
+
+#### Added
+- Nota em `docs/PREPROCESSAMENTO.md`: Diferença de 11.32% entre métodos justifica decisão
+- Documentação do método oficial como padrão (v1.3.0+)
+
+### 🔧 Melhorias Técnicas
+
+#### Changed
+- Endpoint root (`/`) atualizado: lista `/generate_masks` como recomendado
+- Versão mantida: 1.3.0 (mudanças incrementais, não breaking changes)
+
+### 📋 Arquivos Afetados
+
+#### Modified
+- `inference_api/app/main.py`: Novo endpoint `/generate_masks`, método oficial como padrão
+- `notebooks/orthanc_analysis.ipynb`: Notebook unificado criado
+- `docs/API.md`: Documentação completa do novo endpoint
+- `docs/PREPROCESSAMENTO.md`: Decisão técnica documentada
+- `docs/GUIA_NOTEBOOK.md`: Atualizado para 1 notebook
+
+#### Removed
+- `notebooks/orthanc_inference.ipynb`
+- `notebooks/comparison_analysis.ipynb`
+
+### ⚡ Breaking Changes
+
+**Nenhum!** Todas as mudanças são compatíveis:
+- Método oficial é opt-in via parâmetro (agora padrão, mas legado disponível)
+- `/predict_with_heatmap` mantido (legacy)
+- Novo endpoint `/generate_masks` é adicional
+
+---
 
 ## [1.0.0] - 2025-10-29
 

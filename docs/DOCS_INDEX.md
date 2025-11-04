@@ -1,10 +1,21 @@
 # 📚 Índice de Documentação - Mini PACS AI v1.3.0
 
+> **Autor:** Wendell Barreto (wendellbarreto@gmail.com)
 > Guia completo de navegação pela documentação do projeto
 
 ---
 
 ## 🚀 Começando
+
+### 🎓 Trilha de Aprendizado Completa
+
+**[ACADEMY.md](./ACADEMY.md)** ⭐ **APRENDA DO BÁSICO AO AVANÇADO**
+- **Guia rápido:** 30 minutos de leitura
+- 6 seções: PACS/DICOM, IA, Grad-CAM, Arquitetura, Implementação, Uso Clínico
+- Inclui checklist de compreensão
+- **Versão detalhada:** [academy-detalhada/](./academy-detalhada/) (7 módulos, ~8h)
+
+---
 
 ### Para Médicos Radiologistas
 1. **[CLINICAL_USAGE.md](./CLINICAL_USAGE.md)** ⭐ **COMECE AQUI**
@@ -59,13 +70,12 @@
 
 ### [GUIA_NOTEBOOK.md](./GUIA_NOTEBOOK.md)
 **O que contém:**
-- Como usar 2 notebooks disponíveis
-- `orthanc_inference.ipynb` - Básico
-- `comparison_analysis.ipynb` - **Avançado** ⭐
-  - PARTE 1: Comparação pré-processamento
-  - PARTE 2: Heatmaps Grad-CAM
-  - PARTE 3: Análise consolidada
-  - PARTE 4: **Máscaras de segmentação** (NOVO)
+- Como usar notebook unificado (v1.3.0+)
+- `orthanc_analysis.ipynb` - **Análise completa** ⭐
+  - Seção 1: Setup e configuração
+  - Seção 2: **Pesquisa** (escolha método oficial) 🔬
+  - Seção 3: Inferência básica
+  - Seção 4: **Máscaras de segmentação**
 - Instalação local vs Docker
 - Pré-requisitos e checklist
 
@@ -183,28 +193,31 @@
 
 ### Médico Radiologista
 ```
-1. CLINICAL_USAGE.md (LEITURA OBRIGATÓRIA)
-2. GUIA_NOTEBOOK.md → comparison_analysis.ipynb PARTE 4
-3. README.md → Seção "Uso Clínico"
-4. TESTE_API.md → /predict_with_heatmap
+1. ACADEMY.md → Módulo 7 (Uso Clínico e Regulamentação)
+2. CLINICAL_USAGE.md (LEITURA OBRIGATÓRIA)
+3. GUIA_NOTEBOOK.md → orthanc_analysis.ipynb Seção 4
+4. README.md → Seção "Uso Clínico"
+5. TESTE_API.md → /generate_masks ⭐
 ```
 
 ### Desenvolvedor Backend
 ```
-1. README.md (visão geral)
-2. CHANGELOG.md (o que mudou)
-3. TESTE_API.md (como testar)
-4. REBUILD_INSTRUCOES.md (manutenção)
-5. Code: inference_api/app/
+1. ACADEMY.md → Módulos 4-5 (Arquitetura e Implementação)
+2. README.md (visão geral)
+3. CHANGELOG.md (o que mudou)
+4. TESTE_API.md (como testar)
+5. REBUILD_INSTRUCOES.md (manutenção)
+6. Code: inference_api/app/
 ```
 
 ### Data Scientist / Pesquisador
 ```
-1. GUIA_NOTEBOOK.md
-2. notebooks/comparison_analysis.ipynb (TODAS as partes)
-3. README.md → Seção "Validação Científica"
-4. CLINICAL_USAGE.md → Evidência científica
-5. docs/plans/inprogress/visualizacao-preprocessing.md
+1. ACADEMY.md → Módulos 2-3 (IA em Radiologia, Explicabilidade)
+2. GUIA_NOTEBOOK.md
+3. notebooks/orthanc_analysis.ipynb (especialmente Seção 2 - Pesquisa)
+4. README.md → Seção "Validação Científica"
+5. CLINICAL_USAGE.md → Evidência científica
+6. PREPROCESSAMENTO.md → Decisão método oficial
 ```
 
 ### DevOps / SysAdmin
@@ -232,6 +245,7 @@
 mini-pacs-ai/
 ├── 📖 DOCS_INDEX.md ⭐ (este arquivo)
 ├── 📖 README.md ⭐ (início para todos)
+├── 📖 ACADEMY.md ⭐⭐⭐ (trilha de aprendizado completa)
 ├── 📖 CLINICAL_USAGE.md ⭐ (médicos)
 ├── 📖 CHANGELOG.md (histórico)
 ├── 📖 TESTE_API.md (testar endpoints)
@@ -243,8 +257,7 @@ mini-pacs-ai/
 │
 ├── notebooks/
 │   ├── 📖 QUICK_START.md
-│   ├── 📓 orthanc_inference.ipynb
-│   └── 📓 comparison_analysis.ipynb ⭐ (4 partes)
+│   └── 📓 orthanc_analysis.ipynb ⭐ (4 seções)
 │
 ├── docs/
 │   └── plans/
@@ -261,27 +274,29 @@ mini-pacs-ai/
 
 ## 🔄 Fluxo de Leitura Recomendado
 
-### 1️⃣ Primeiro Contato (15 min)
+### 1️⃣ Primeiro Contato (30 min)
 ```
 README.md → overview completo
+ACADEMY.md → Módulo 1 (Fundamentos PACS e DICOM)
 ```
 
 ### 2️⃣ Instalação e Teste (30 min)
 ```
 README.md → Instalação
-TESTE_API.md → Testar /predict_with_heatmap
-GUIA_NOTEBOOK.md → Abrir comparison_analysis.ipynb
+TESTE_API.md → Testar /generate_masks ⭐
+GUIA_NOTEBOOK.md → Abrir orthanc_analysis.ipynb
 ```
 
 ### 3️⃣ Uso Clínico (1 hora)
 ```
 CLINICAL_USAGE.md → Ler completo
-notebooks/comparison_analysis.ipynb → PARTE 4
+notebooks/orthanc_analysis.ipynb → Seção 4 (máscaras)
 README.md → Seção "Uso Clínico"
 ```
 
-### 4️⃣ Entendimento Técnico (2 horas)
+### 4️⃣ Entendimento Técnico (3-4 horas)
 ```
+ACADEMY.md → TODOS os módulos (leitura completa)
 CHANGELOG.md → v1.3.0, v1.2.0, v1.0.0
 JUPYTER_IMPLEMENTADO.md → Arquitetura
 docs/plans/inprogress/visualizacao-preprocessing.md → Plano
@@ -301,17 +316,18 @@ Code review: inference_api/app/
    ```
 
 2. **Explorar notebooks**
-   - http://localhost:8888/notebooks/comparison_analysis.ipynb
+   - http://localhost:8888/notebooks/orthanc_analysis.ipynb
 
 3. **Testar API**
-   - http://localhost:8000/docs
+   - http://localhost:8000/docs → POST /generate_masks ⭐
 
 4. **Para médicos:** Ler guia clínico
    - `CLINICAL_USAGE.md`
 
 ---
 
-**Última atualização:** 2025-11-03 (v1.3.0)
-**Documentos:** 15 arquivos principais
-**Notebooks:** 2 (básico + avançado)
+**Última atualização:** 2025-11-04 (v1.3.0+)
+**Documentos:** 16 arquivos principais (incluindo ACADEMY.md)
+**Notebooks:** 1 unificado (orthanc_analysis.ipynb - 4 seções)
+**Autor:** Wendell Barreto (wendellbarreto@gmail.com)
 

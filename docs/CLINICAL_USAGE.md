@@ -1,5 +1,8 @@
 # 🩺 Guia de Uso Clínico - Mini PACS AI
 
+> **Autor:** Wendell Barreto (wendellbarreto@gmail.com)
+> **Versão:** 1.3.0
+
 ## Para Médicos Radiologistas
 
 Este documento explica como usar o sistema de auxílio diagnóstico com Inteligência Artificial.
@@ -297,7 +300,7 @@ Probabilidades:
 
 **Dúvidas técnicas:**
 - Consultar: `README.md`
-- Notebook: `notebooks/comparison_analysis.ipynb`
+- Notebook: `notebooks/orthanc_analysis.ipynb` (Seção 4 - máscaras)
 
 **Feedback clínico:**
 - Reportar casos interessantes (falsos positivos/negativos)

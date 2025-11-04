@@ -1,5 +1,7 @@
 # ✅ Jupyter Container Implementado (Opção 1)
 
+> **Autor:** Wendell Barreto (wendellbarreto@gmail.com)
+
 **Data:** 2025-11-02
 **Status:** Completo e testável
 
@@ -66,9 +68,9 @@ CMD ["jupyter", "notebook", \
      "--NotebookApp.password=''"]
 ```
 
-### 3. `notebooks/orthanc_inference.ipynb`
+### 3. `notebooks/orthanc_analysis.ipynb`
 ```python
-# URLs ATUALIZADAS (Célula 2):
+# URLs ATUALIZADAS (Célula 3):
 ORTHANC_URL = "http://orthanc:8042"              # ← Nome do serviço
 INFERENCE_API_URL = "http://inference-api:8000"  # ← Nome do serviço
 ```
@@ -112,7 +114,7 @@ open http://localhost:8888
 make jupyter
 
 # Acessa: http://localhost:8888
-# Abre: orthanc_inference.ipynb
+# Abre: orthanc_analysis.ipynb
 # Menu → Cell → Run All
 ```
 
@@ -169,7 +171,7 @@ jupyter:
 
 ### Modificados
 - ✅ `docker-compose.yml` (serviço jupyter adicionado)
-- ✅ `notebooks/orthanc_inference.ipynb` (URLs internas)
+- ✅ `notebooks/orthanc_analysis.ipynb` (URLs internas - v1.3.0+)
 - ✅ `Makefile` (comandos jupyter)
 - ✅ `README.md` (documentação atualizada)
 

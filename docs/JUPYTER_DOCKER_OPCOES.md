@@ -31,7 +31,7 @@
 notebooks/
 ├── Dockerfile              ← Criado!
 ├── requirements.txt        ← Já existe
-└── orthanc_inference.ipynb
+└── orthanc_analysis.ipynb  ← v1.3.0+ (unificado)
 ```
 
 ### 🚀 Como Usar
@@ -168,7 +168,7 @@ http://localhost:8888
 
 #### 4. Navegar
 ```
-work/ → orthanc_inference.ipynb
+work/ → orthanc_analysis.ipynb
 ```
 
 ### 🔄 URLs no Notebook

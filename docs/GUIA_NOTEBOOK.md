@@ -1,9 +1,8 @@
-# 📓 Guia de Uso dos Notebooks Jupyter
+# 📓 Guia de Uso do Notebook Jupyter
 
-> **Versão:** 1.3.0
-> **Notebooks disponíveis:**
-> - `orthanc_inference.ipynb` - Integração básica Orthanc → API
-> - `comparison_analysis.ipynb` - **Análise completa + Máscaras Grad-CAM** (Recomendado)
+> **Autor:** Wendell Barreto (wendellbarreto@gmail.com)
+> **Versão:** 1.3.0+
+> **Notebook:** `orthanc_analysis.ipynb` - Análise completa do sistema
 
 ---
 
@@ -53,7 +52,7 @@ cd notebooks
 jupyter notebook
 
 # 3. No navegador, abrir:
-# orthanc_inference.ipynb
+# orthanc_analysis.ipynb
 
 # 4. Executar todas as células:
 # Menu → Cell → Run All
@@ -69,7 +68,7 @@ pip install jupyterlab
 cd notebooks
 jupyter lab
 
-# 3. Abrir orthanc_inference.ipynb
+# 3. Abrir orthanc_analysis.ipynb
 ```
 
 ### Opção 3: VS Code
@@ -78,7 +77,7 @@ jupyter lab
 # 1. Instalar extensão Jupyter no VS Code
 
 # 2. Abrir arquivo
-code notebooks/orthanc_inference.ipynb
+code notebooks/orthanc_analysis.ipynb
 
 # 3. Selecionar kernel Python
 # 4. Executar células com Shift+Enter
@@ -88,43 +87,35 @@ code notebooks/orthanc_inference.ipynb
 
 ## 📋 O Que o Notebook Faz
 
-### Célula 1-2: Setup
-- Imports (requests, pydicom, matplotlib, pandas)
+### Seção 1: Setup e Configuração
+- Imports (requests, pydicom, matplotlib, pandas, numpy)
 - Configuração de URLs do Orthanc e API
+- Funções auxiliares para processar DICOMs
+- Verificação de status dos serviços
 
-### Célula 3-4: Funções Auxiliares
-```python
-list_instances()           # Lista DICOMs no Orthanc
-download_dicom(id)         # Baixa DICOM específico
-call_inference_api(bytes)  # Envia para /predict
-display_image_and_predictions()  # Plota resultados
-```
+### Seção 2: Pesquisa - Escolha do Pré-processamento
+🔬 **Comparação científica:**
+- Testa 2 métodos de pré-processamento
+- Visualiza diferenças lado a lado
+- Gráficos comparativos (Anterior vs Oficial)
+- **Conclusão:** Método oficial é ~11% mais preciso
+- **Decisão:** Método oficial adotado como padrão
 
-### Célula 5-6: Verificação de Status
-✅ Testa conectividade com:
-- Orthanc (http://localhost:8042)
-- API de Inferência (http://localhost:8000)
+### Seção 3: Inferência Básica
+📊 **Predição de achados radiológicos:**
+- Processa todos os DICOMs do Orthanc
+- Usa método oficial TorchXRayVision (padrão)
+- Exibe imagem + top 5 achados por exame
+- Tabela consolidada com todos os resultados
 
-### Célula 7-8: Listagem
-📋 Lista todos os DICOMs armazenados no Orthanc
-
-### Célula 9-10: Processamento Automático
-🔄 **Loop principal:**
-```
-Para cada DICOM no Orthanc:
-  1. Baixa o arquivo
-  2. Envia para /predict
-  3. Exibe imagem + top 5 achados
-  4. Mostra metadados
-```
-
-### Célula 11-12: Análise Consolidada
-📊 Cria tabela comparativa:
-- Instância vs Top 3 achados
-- Formato pandas DataFrame
-
-### Célula 13-14: Teste com Arquivo Local
-💾 Opcional: Testar com DICOM local sem usar Orthanc
+### Seção 4: Máscaras de Segmentação
+🏥 **Localização automática via Grad-CAM:**
+- Máscaras binárias geradas automaticamente
+- Estilo TorchXRayVision (xray_masks.ipynb)
+- Overlay com transparência (alpha=0.5)
+- Mostra regiões de maior atenção do modelo
+- **Importante:** Máscaras automáticas, não ground truth
+- ~2-3s adicional por exame
 
 ---
 
@@ -323,91 +314,6 @@ plt.savefig(f"resultado_{title}.png", dpi=300, bbox_inches="tight")
 
 ---
 
-## 🆕 Notebook Avançado: comparison_analysis.ipynb (v1.3.0)
-
-### O que oferece:
-
-Este notebook completo oferece 4 partes de análise:
-
-#### PARTE 1: Comparação de Pré-processamento
-- Compara método atual vs oficial TorchXRayVision
-- Visualizações lado-a-lado das probabilidades
-- Gráficos de diferenças (verde/laranja/vermelho)
-- Decisão automatizada (qual método usar)
-
-#### PARTE 2: Visualização Grad-CAM
-- Heatmaps de atenção para interpretação visual
-- Bounding boxes nos achados detectados
-- Visualização profissional estilo CAD
-- Processa TODOS os exames do Orthanc
-
-#### PARTE 3: Análise Consolidada
-- Estatísticas de todas as instâncias
-- Distribuição de diferenças (histograma + boxplot)
-- Top achados consolidados
-
-#### **PARTE 4: Máscaras de Segmentação Grad-CAM** ⭐ (NOVO)
-- Visualização estilo [TorchXRayVision oficial](https://github.com/mlmed/torchxrayvision/blob/main/scripts/xray_masks.ipynb)
-- Máscaras binárias geradas automaticamente
-- Overlay de máscaras sobre imagem original (alpha=0.5)
-- Layout: `[Original] [Máscara 1] [Máscara 2] ...`
-- **Diferença importante:** xray_masks.ipynb mostra ground truth (anotações manuais), nossa implementação **gera máscaras via Grad-CAM**
-
-### Como usar:
-
-**Via Container Docker (Recomendado):**
-```bash
-# 1. Subir todos os serviços (incluindo Jupyter)
-docker compose up -d
-
-# 2. Acessar Jupyter
-# URL exibida nos logs: http://localhost:8888
-docker compose logs jupyter | grep token
-
-# 3. Abrir notebook
-http://localhost:8888/notebooks/comparison_analysis.ipynb
-
-# 4. Executar células na ordem
-```
-
-**Localmente:**
-```bash
-# 1. Instalar dependências
-pip install -r notebooks/requirements.txt
-
-# 2. Modificar URLs no notebook
-# Trocar:
-#   ORTHANC_URL = "http://orthanc:8042"
-#   API_URL = "http://inference-api:8000"
-# Para:
-#   ORTHANC_URL = "http://localhost:8042"
-#   API_URL = "http://localhost:8000"
-
-# 3. Subir Jupyter
-cd notebooks
-jupyter notebook
-
-# 4. Abrir comparison_analysis.ipynb
-```
-
-### Para Médicos Radiologistas:
-
-**PARTE 4 é a mais relevante clinicamente:**
-- Mostra máscaras de segmentação das regiões suspeitas
-- Visualização familiar (estilo TorchXRayVision)
-- **IMPORTANTE:** Máscaras são geradas automaticamente via Grad-CAM
-- **NÃO são** ground truth (anotações manuais)
-- Use como **auxílio diagnóstico**, não como diagnóstico definitivo
-
-**Limitações a considerar:**
-- Precisão: ~70-80% vs ground truth
-- Pode ter falsos positivos/negativos
-- Decisão final sempre do médico
-
-Ver guia completo: `CLINICAL_USAGE.md`
-
----
-
 ## ✅ Checklist Pré-Execução
 
 - [ ] Containers rodando (`docker compose ps`)
@@ -419,7 +325,7 @@ Ver guia completo: `CLINICAL_USAGE.md`
 
 ---
 
-**Última atualização:** 2025-11-03 (v1.3.0)
-**Notebooks:** 2 (orthanc_inference.ipynb, comparison_analysis.ipynb)
+**Última atualização:** 2025-11-04 (v1.3.0+)
+**Notebook:** 1 (orthanc_analysis.ipynb - análise completa)
 **Compatível com:** Python 3.8+
 
