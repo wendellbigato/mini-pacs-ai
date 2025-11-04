@@ -300,7 +300,7 @@ Probabilidades:
 
 **Dúvidas técnicas:**
 - Consultar: `README.md`
-- Notebook: `notebooks/comparison_analysis.ipynb`
+- Notebook: `notebooks/orthanc_analysis.ipynb` (Seção 4 - máscaras)
 
 **Feedback clínico:**
 - Reportar casos interessantes (falsos positivos/negativos)

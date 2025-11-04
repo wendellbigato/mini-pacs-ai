@@ -236,7 +236,7 @@ Resultado esperado da fase:
 
 ### Fase 3 — Notebook de Integração Orthanc → `/predict`
 
-**Meta:** Criar um notebook Jupyter (`notebooks/orthanc_inference.ipynb`) que automatiza o fluxo pedido no passo 3 do enunciado. 
+**Meta:** Criar um notebook Jupyter (`notebooks/orthanc_analysis.ipynb` - v1.3.0+, antes orthanc_inference.ipynb) que automatiza o fluxo pedido no passo 3 do enunciado. 
 
 O notebook deve fazer, para TODAS as instâncias DICOM armazenadas no Orthanc:
 
@@ -291,8 +291,7 @@ Esse notebook é explicitamente um requisito de entrega.
 
 ### Notebook
 
-* `notebooks/orthanc_inference.ipynb`
-* `notebooks/comparison_analysis.ipynb`
+* `notebooks/orthanc_analysis.ipynb` (v1.3.0+ - unificado)
 
 ### Documentação
 

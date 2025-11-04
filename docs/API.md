@@ -11,7 +11,8 @@
 - [Visão Geral](#visão-geral)
 - [Endpoints](#endpoints)
   - [POST /predict](#post-predict)
-  - [POST /predict_with_heatmap](#post-predict_with_heatmap)
+  - [POST /generate_masks](#post-generate_masks) ⭐ Recomendado
+  - [POST /predict_with_heatmap](#post-predict_with_heatmap) (Legacy)
   - [POST /compare_preprocessing](#post-compare_preprocessing)
   - [GET /masks](#get-masks)
   - [POST /validate_masks](#post-validate_masks)
@@ -58,9 +59,13 @@ Recebe um arquivo DICOM e retorna probabilidades de achados radiológicos.
 
 **Parâmetros:**
 
-| Nome | Tipo | Obrigatório | Descrição |
-|------|------|-------------|-----------|
-| `dicom_file` | File | ✅ Sim | Arquivo DICOM (.dcm) |
+| Nome | Tipo | Obrigatório | Descrição | Padrão |
+|------|------|-------------|-----------|--------|
+| `dicom_file` | File | ✅ Sim | Arquivo DICOM (.dcm) | - |
+| `use_official_preprocessing` | Boolean | ❌ Não | Se True, usa pipeline oficial TorchXRayVision (HU scale [-1024, 1024]). **Recomendado para produção.** | `true` |
+
+**Nota sobre pré-processamento:**
+A partir da v1.3.0+, o método oficial TorchXRayVision é o padrão, baseado em pesquisa que demonstrou diferença média de 11.32% nas probabilidades. Ver `docs/PREPROCESSAMENTO.md` para detalhes.
 
 **Exemplo de Request (cURL):**
 
@@ -122,9 +127,82 @@ print(response.json())
 
 ---
 
+### POST /generate_masks
+
+Gera máscaras de segmentação Grad-CAM para localização automática de achados radiológicos.
+
+**URL:** `/generate_masks`
+
+**Método:** `POST`
+
+**Content-Type:** `multipart/form-data`
+
+**⭐ Recomendado:** Este é o endpoint recomendado para geração de máscaras no notebook.
+
+**Parâmetros:**
+
+| Nome | Tipo | Obrigatório | Descrição | Padrão |
+|------|------|-------------|-----------|--------|
+| `dicom_file` | File | ✅ Sim | Arquivo DICOM (.dcm) | - |
+| `top_n` | int | ❌ Não | Número de máscaras a gerar | 3 |
+| `use_official_preprocessing` | bool | ❌ Não | Usar pipeline oficial TorchXRayVision | true |
+
+**Exemplo de Request (Python):**
+
+```python
+import requests
+
+url = "http://localhost:8000/generate_masks"
+params = {"top_n": 3, "use_official_preprocessing": True}
+files = {"dicom_file": open("exam.dcm", "rb")}
+response = requests.post(url, params=params, files=files)
+result = response.json()
+
+# Acessar máscaras
+for mask_data in result['heatmaps']:
+    pathology = mask_data['pathology']
+    probability = mask_data['probability']
+    mask_base64 = mask_data['mask_base64']
+    print(f"{pathology}: {probability:.1%}")
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "probabilities": {
+    "Effusion": 0.502,
+    "Cardiomegaly": 0.501,
+    "Atelectasis": 0.504
+  },
+  "heatmaps": [
+    {
+      "pathology": "Effusion",
+      "probability": 0.502,
+      "heatmap_base64": "data:image/png;base64,...",
+      "mask_base64": "data:image/png;base64,..."
+    }
+  ],
+  "metadata": {
+    "patient_id": "...",
+    "study_date": "..."
+  }
+}
+```
+
+**Nota:**
+- Máscaras são geradas automaticamente via Grad-CAM
+- NÃO são máscaras ground truth (anotações manuais)
+- Usado no notebook `orthanc_analysis.ipynb`
+- ~2-3s adicionais por inferência
+
+---
+
 ### POST /predict_with_heatmap
 
 Realiza predição E gera heatmaps Grad-CAM + máscaras de segmentação para interpretação visual.
+
+**⚠️ Legacy:** Use `/generate_masks` para gerar máscaras (mais semântico).
 
 **URL:** `/predict_with_heatmap`
 

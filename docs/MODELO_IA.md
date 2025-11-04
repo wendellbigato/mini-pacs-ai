@@ -472,7 +472,7 @@ mask = (heatmap > threshold).astype(np.uint8)
 ```
 
 **Visualização:**
-- Ver `notebooks/comparison_analysis.ipynb` PARTE 4
+- Ver `notebooks/orthanc_analysis.ipynb` Seção 4 (máscaras)
 - Estilo [TorchXRayVision xray_masks.ipynb](https://github.com/mlmed/torchxrayvision/blob/main/scripts/xray_masks.ipynb)
 - Alpha blending: 50% imagem + 50% máscara
 
@@ -488,7 +488,7 @@ mask = (heatmap > threshold).astype(np.uint8)
 **Grad-CAM:**
 - Paper original: https://arxiv.org/abs/1610.02391
 - Implementação: `inference_api/app/gradcam.py`
-- Análise: `notebooks/comparison_analysis.ipynb` PARTE 2
+- Visualização: `notebooks/orthanc_analysis.ipynb` Seção 4
 
 **Datasets:**
 - NIH ChestX-ray14: https://nihcc.app.box.com/v/ChestXray-NIHCC

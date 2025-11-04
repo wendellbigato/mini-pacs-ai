@@ -1,8 +1,8 @@
 # Como Testar a API - Guia Completo
 
 > **Autor:** Wendell Barreto (wendellbarreto@gmail.com)
-> **Versão:** 1.3.0
-> **Endpoints:** `/predict`, `/predict_with_heatmap`, `/compare_preprocessing`, `/masks`, `/validate_masks`
+> **Versão:** 1.3.0+
+> **Endpoints:** `/predict`, `/generate_masks` ⭐, `/predict_with_heatmap` (legacy), `/compare_preprocessing`, `/masks`, `/validate_masks`
 
 ## ✅ Problemas Resolvidos
 
@@ -172,30 +172,30 @@ curl http://localhost:8000/health
 
 ---
 
-## 🆕 Novos Endpoints (v1.3.0)
+## 🆕 Endpoints de Visualização
 
-### 1. POST /predict_with_heatmap - Predição + Máscaras Grad-CAM
+### 1. POST /generate_masks ⭐ - Máscaras Grad-CAM (Recomendado v1.3.0+)
 
 **O que faz:**
 - Predição de achados radiológicos
-- Gera heatmaps Grad-CAM (regiões de atenção)
-- Gera máscaras binárias de segmentação automaticamente
+- Gera máscaras binárias de segmentação Grad-CAM
+- Método oficial TorchXRayVision como padrão
 
 **Via Swagger UI:**
 ```bash
 # 1. Acesse: http://localhost:8000/docs
-# 2. Expanda "POST /predict_with_heatmap"
+# 2. Expanda "POST /generate_masks"
 # 3. Try it out
 # 4. Upload DICOM
 # 5. Parâmetros opcionais:
-#    - top_n: 5 (número de achados)
-#    - use_official_preprocessing: true
+#    - top_n: 3 (número de máscaras - padrão mais focado)
+#    - use_official_preprocessing: true (padrão)
 # 6. Execute
 ```
 
 **Via curl:**
 ```bash
-curl -X POST "http://localhost:8000/predict_with_heatmap?top_n=3" \
+curl -X POST "http://localhost:8000/generate_masks?top_n=3" \
   -H "Content-Type: multipart/form-data" \
   -F "dicom_file=@exemplo.dcm"
 ```
@@ -217,13 +217,24 @@ curl -X POST "http://localhost:8000/predict_with_heatmap?top_n=3" \
 ```
 
 **Uso:**
-- Ver máscaras no notebook: `comparison_analysis.ipynb` PARTE 4
+- Ver máscaras no notebook: `orthanc_analysis.ipynb` Seção 4
 - Heatmap: mostra intensidade da atenção (cores)
 - Máscara: segmentação binária da região de atenção
+- **Decisão:** Método oficial adotado após pesquisa (~11% diferença)
 
 ---
 
-### 2. POST /compare_preprocessing - Comparar Métodos
+### 2. POST /predict_with_heatmap - Legacy (compatibilidade)
+
+**Endpoint legado** mantido para compatibilidade. Use `/generate_masks` ao invés.
+
+**Diferenças:**
+- top_n padrão: 5 (menos focado)
+- Mantido para código existente
+
+---
+
+### 3. POST /compare_preprocessing - Comparar Métodos (Pesquisa)
 
 **O que faz:**
 - Compara pré-processamento atual vs oficial TorchXRayVision
@@ -252,8 +263,8 @@ curl -X POST "http://localhost:8000/compare_preprocessing" \
 ```
 
 **Uso:**
-- Decidir qual método usar (se mean_difference > 0.05, usar oficial)
-- Ver análise completa no notebook: `comparison_analysis.ipynb` PARTE 1
+- Validar decisão de usar método oficial (~11% diferença confirmada)
+- Ver análise completa no notebook: `orthanc_analysis.ipynb` Seção 2
 
 ---
 
@@ -315,8 +326,8 @@ curl -X POST "http://localhost:8000/validate_masks?nih_sample_idx=0" \
 ### Para Uso Clínico (Médico Radiologista):
 
 1. **Upload DICOM no Orthanc** → automático via PACS
-2. **Chamar `/predict_with_heatmap`** → obtém probabilidades + máscaras
-3. **Visualizar no notebook** → `comparison_analysis.ipynb` PARTE 4
+2. **Chamar `/generate_masks`** ⭐ → obtém probabilidades + máscaras (método oficial)
+3. **Visualizar no notebook** → `orthanc_analysis.ipynb` Seção 4
 4. **Analisar resultados** → médico emite laudo final
 
 ### Para Validação/Pesquisa:

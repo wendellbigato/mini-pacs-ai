@@ -241,7 +241,7 @@ async def compare_preprocessing(dicom_file: UploadFile = File(...)):
 
 ### Fase 3: Notebook de Análise Comparativa 📊 (Prioridade 3)
 
-**Arquivo:** `notebooks/comparison_analysis.ipynb` (NOVO)
+**Arquivo:** `notebooks/orthanc_analysis.ipynb` Seção 2 (v1.3.0+ - antes comparison_analysis.ipynb)
 
 **Células:**
 
@@ -300,7 +300,7 @@ print(diff_df)
 
 1. `inference_api/app/preprocess_official.py` - Pipeline TorchXRayVision oficial
 2. `inference_api/app/gradcam.py` - Geração de heatmaps
-3. `notebooks/comparison_analysis.ipynb` - Análise comparativa
+3. `notebooks/orthanc_analysis.ipynb` Seção 2 - Análise comparativa (v1.3.0+)
 4. `docs/plans/inprogress/visualizacao-preprocessing.md` - Este arquivo
 
 ### Arquivos Modificados
@@ -377,10 +377,10 @@ curl -X POST "http://localhost:8000/predict_with_heatmap" \
 # Abrir Jupyter
 make jupyter
 
-# Executar notebooks/comparison_analysis.ipynb
+# Executar notebooks/orthanc_analysis.ipynb (v1.3.0+)
 # Verificar:
 # - Heatmaps fazem sentido clinicamente
-# - Diferenças de pré-processamento < 10% (ou justificar)
+# - Diferenças de pré-processamento ~11% (método oficial adotado)
 ```
 
 ---

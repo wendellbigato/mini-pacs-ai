@@ -10,6 +10,7 @@
 ### 🎓 Trilha de Aprendizado Completa
 
 **[ACADEMY.md](./ACADEMY.md)** ⭐ **APRENDA DO BÁSICO AO AVANÇADO**
+- **Estrutura modular:** 7 módulos independentes em `docs/academy/`
 - Módulo 1: Fundamentos PACS e DICOM
 - Módulo 2: IA em Radiologia
 - Módulo 3: Explicabilidade (Grad-CAM)
@@ -17,7 +18,8 @@
 - Módulo 5: Implementação Técnica
 - Módulo 6: Discovery e Insights de Desenvolvimento
 - Módulo 7: Uso Clínico e Regulamentação
-- **1200+ linhas** com explicações detalhadas, diagramas e código
+- **2700+ linhas** com explicações detalhadas, diagramas e código
+- **~8 horas** de conteúdo total
 
 ---
 
@@ -74,13 +76,12 @@
 
 ### [GUIA_NOTEBOOK.md](./GUIA_NOTEBOOK.md)
 **O que contém:**
-- Como usar 2 notebooks disponíveis
-- `orthanc_inference.ipynb` - Básico
-- `comparison_analysis.ipynb` - **Avançado** ⭐
-  - PARTE 1: Comparação pré-processamento
-  - PARTE 2: Heatmaps Grad-CAM
-  - PARTE 3: Análise consolidada
-  - PARTE 4: **Máscaras de segmentação** (NOVO)
+- Como usar notebook unificado (v1.3.0+)
+- `orthanc_analysis.ipynb` - **Análise completa** ⭐
+  - Seção 1: Setup e configuração
+  - Seção 2: **Pesquisa** (escolha método oficial) 🔬
+  - Seção 3: Inferência básica
+  - Seção 4: **Máscaras de segmentação**
 - Instalação local vs Docker
 - Pré-requisitos e checklist
 
@@ -200,9 +201,9 @@
 ```
 1. ACADEMY.md → Módulo 7 (Uso Clínico e Regulamentação)
 2. CLINICAL_USAGE.md (LEITURA OBRIGATÓRIA)
-3. GUIA_NOTEBOOK.md → comparison_analysis.ipynb PARTE 4
+3. GUIA_NOTEBOOK.md → orthanc_analysis.ipynb Seção 4
 4. README.md → Seção "Uso Clínico"
-5. TESTE_API.md → /predict_with_heatmap
+5. TESTE_API.md → /generate_masks ⭐
 ```
 
 ### Desenvolvedor Backend
@@ -219,10 +220,10 @@
 ```
 1. ACADEMY.md → Módulos 2-3 (IA em Radiologia, Explicabilidade)
 2. GUIA_NOTEBOOK.md
-3. notebooks/comparison_analysis.ipynb (TODAS as partes)
+3. notebooks/orthanc_analysis.ipynb (especialmente Seção 2 - Pesquisa)
 4. README.md → Seção "Validação Científica"
 5. CLINICAL_USAGE.md → Evidência científica
-6. docs/plans/inprogress/visualizacao-preprocessing.md
+6. PREPROCESSAMENTO.md → Decisão método oficial
 ```
 
 ### DevOps / SysAdmin
@@ -262,8 +263,7 @@ mini-pacs-ai/
 │
 ├── notebooks/
 │   ├── 📖 QUICK_START.md
-│   ├── 📓 orthanc_inference.ipynb
-│   └── 📓 comparison_analysis.ipynb ⭐ (4 partes)
+│   └── 📓 orthanc_analysis.ipynb ⭐ (4 seções)
 │
 ├── docs/
 │   └── plans/
@@ -289,14 +289,14 @@ ACADEMY.md → Módulo 1 (Fundamentos PACS e DICOM)
 ### 2️⃣ Instalação e Teste (30 min)
 ```
 README.md → Instalação
-TESTE_API.md → Testar /predict_with_heatmap
-GUIA_NOTEBOOK.md → Abrir comparison_analysis.ipynb
+TESTE_API.md → Testar /generate_masks ⭐
+GUIA_NOTEBOOK.md → Abrir orthanc_analysis.ipynb
 ```
 
 ### 3️⃣ Uso Clínico (1 hora)
 ```
 CLINICAL_USAGE.md → Ler completo
-notebooks/comparison_analysis.ipynb → PARTE 4
+notebooks/orthanc_analysis.ipynb → Seção 4 (máscaras)
 README.md → Seção "Uso Clínico"
 ```
 
@@ -322,18 +322,18 @@ Code review: inference_api/app/
    ```
 
 2. **Explorar notebooks**
-   - http://localhost:8888/notebooks/comparison_analysis.ipynb
+   - http://localhost:8888/notebooks/orthanc_analysis.ipynb
 
 3. **Testar API**
-   - http://localhost:8000/docs
+   - http://localhost:8000/docs → POST /generate_masks ⭐
 
 4. **Para médicos:** Ler guia clínico
    - `CLINICAL_USAGE.md`
 
 ---
 
-**Última atualização:** 2025-11-03 (v1.3.0)
+**Última atualização:** 2025-11-04 (v1.3.0+)
 **Documentos:** 16 arquivos principais (incluindo ACADEMY.md)
-**Notebooks:** 2 (básico + avançado)
+**Notebooks:** 1 unificado (orthanc_analysis.ipynb - 4 seções)
 **Autor:** Wendell Barreto (wendellbarreto@gmail.com)
 

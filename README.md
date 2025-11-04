@@ -1,7 +1,7 @@
 # Mini PACS AI
 
 > **Autor:** Wendell Barreto (wendellbarreto@gmail.com)
-> **Versão:** 1.3.0
+> **Versão:** 1.3.0+
 
 Sistema de inferência de achados radiológicos em imagens DICOM usando TorchXRayVision, integrado com PACS Orthanc.
 
@@ -99,9 +99,10 @@ make test    # Testa se os serviços estão respondendo
 ### 🔧 **Guias Técnicos**
 
 - **[API.md](./docs/API.md)** - Documentação completa dos endpoints
-  - POST /predict
-  - POST /predict_with_heatmap (com máscaras Grad-CAM)
-  - POST /compare_preprocessing
+  - POST /predict (método oficial como padrão)
+  - POST /generate_masks ⭐ (recomendado - máscaras Grad-CAM)
+  - POST /predict_with_heatmap (legacy)
+  - POST /compare_preprocessing (pesquisa científica)
   - GET /masks, POST /validate_masks (validação científica)
   - Exemplos Python, cURL, troubleshooting
 
@@ -121,19 +122,19 @@ make test    # Testa se os serviços estão respondendo
 
 - **[PREPROCESSAMENTO.md](./docs/PREPROCESSAMENTO.md)** - Pré-processamento DICOM
   - DICOM vs imagens comuns
-  - Pipeline atual vs oficial
-  - Comparação de métodos (~7.85% de diferença)
+  - Pesquisa: Método oficial vs anterior (~11% de diferença)
+  - Decisão: Método oficial TorchXRayVision adotado como padrão
   - Discovery process
-  - Recomendações
+  - Recomendações técnicas
 
 - **[TESTE_API.md](./docs/TESTE_API.md)** - Como testar a API
   - Métodos de teste (Swagger UI, cURL, Python)
   - Troubleshooting completo
   - Exemplos práticos
 
-- **[GUIA_NOTEBOOK.md](./docs/GUIA_NOTEBOOK.md)** - Usando os notebooks
-  - orthanc_inference.ipynb (básico)
-  - comparison_analysis.ipynb (avançado - 4 partes)
+- **[GUIA_NOTEBOOK.md](./docs/GUIA_NOTEBOOK.md)** - Usando o notebook
+  - orthanc_analysis.ipynb (análise completa - 4 seções)
+  - Seção Pesquisa: escolha do método oficial
   - Visualização de máscaras Grad-CAM
 
 - **[REBUILD_INSTRUCOES.md](./docs/REBUILD_INSTRUCOES.md)** - Quando fazer rebuild
@@ -159,6 +160,7 @@ make test    # Testa se os serviços estão respondendo
 ### 📝 **Histórico**
 
 **[CHANGELOG.md](./CHANGELOG.md)** - Histórico de versões
+- v1.3.0+: Método oficial padrão + Endpoint /generate_masks + Notebook unificado
 - v1.3.0: Máscaras de segmentação Grad-CAM + Validação
 - v1.2.0: Grad-CAM + Pré-processamento
 - v1.0.1: Bug fixes
@@ -231,8 +233,7 @@ mini-pacs-ai/
 │
 ├── notebooks/
 │   ├── Dockerfile
-│   ├── orthanc_inference.ipynb     # Básico
-│   ├── comparison_analysis.ipynb   # Avançado (4 partes)
+│   ├── orthanc_analysis.ipynb      # Análise completa (4 seções)
 │   └── requirements.txt
 │
 ├── test_predict.py                 # Script de teste da API
@@ -260,9 +261,10 @@ Atelectasis, Cardiomegaly, Consolidation, Edema, Pleural Effusion, Pneumonia, Pn
 
 ### Principais
 
-- **POST /predict** - Predição básica
-- **POST /predict_with_heatmap** ⭐ - Predição + heatmaps Grad-CAM + máscaras
-- **POST /compare_preprocessing** - Comparar métodos de pré-processamento
+- **POST /predict** - Predição básica (método oficial padrão)
+- **POST /generate_masks** ⭐ - Máscaras Grad-CAM (recomendado)
+- **POST /predict_with_heatmap** - Predição + máscaras (legacy)
+- **POST /compare_preprocessing** - Comparar métodos (pesquisa)
 - **GET /health** - Status da API
 - **GET /labels** - Lista de achados detectáveis
 
@@ -292,16 +294,18 @@ Atelectasis, Cardiomegaly, Consolidation, Edema, Pleural Effusion, Pneumonia, Pn
 
 #### Via Swagger UI
 
-http://localhost:8000/docs → POST /predict_with_heatmap → Try it out
+http://localhost:8000/docs → POST /generate_masks → Try it out
 
 #### Via Python
 
 ```python
 import requests
 
-url = "http://localhost:8000/predict_with_heatmap"
+# Endpoint recomendado (v1.3.0+)
+url = "http://localhost:8000/generate_masks"
 files = {"dicom_file": open("exam.dcm", "rb")}
-response = requests.post(url, files=files)
+params = {"top_n": 3}  # Número de máscaras
+response = requests.post(url, files=files, params=params)
 result = response.json()
 
 print("Achados detectados:")
@@ -319,17 +323,16 @@ for achado, prob in result['probabilities'].items():
 make jupyter
 # Acesse URL exibida: http://localhost:8888/...?token=...
 
-# Abrir: comparison_analysis.ipynb
+# Abrir: orthanc_analysis.ipynb
 # Executar: Cell → Run All
 ```
 
-**Notebooks:**
-- `orthanc_inference.ipynb` - Integração básica
-- `comparison_analysis.ipynb` - Análise completa (4 partes):
-  - PARTE 1: Comparação pré-processamento
-  - PARTE 2: Heatmaps Grad-CAM
-  - PARTE 3: Análise consolidada
-  - PARTE 4: Máscaras de segmentação ⭐
+**Notebook unificado (v1.3.0+):**
+- `orthanc_analysis.ipynb` - Análise completa (4 seções):
+  - Seção 1: Setup e configuração
+  - Seção 2: Pesquisa (escolha do método oficial) ⭐
+  - Seção 3: Inferência com método oficial
+  - Seção 4: Máscaras de segmentação Grad-CAM
 
 **Ver guia completo:** [docs/GUIA_NOTEBOOK.md](./docs/GUIA_NOTEBOOK.md)
 
@@ -452,7 +455,7 @@ Este projeto foi desenvolvido para fins educacionais como parte de um desafio t�
 ### Para uso clínico:
 1. **Leia:** [docs/CLINICAL_USAGE.md](./docs/CLINICAL_USAGE.md) - Guia obrigatório
 2. **Teste:** Upload DICOM no Orthanc
-3. **Visualize:** `comparison_analysis.ipynb` PARTE 4
+3. **Visualize:** `orthanc_analysis.ipynb` Seção 4 (máscaras)
 4. **Valide:** Análise com radiologista
 
 ### Para desenvolvimento:
@@ -463,6 +466,6 @@ Este projeto foi desenvolvido para fins educacionais como parte de um desafio t�
 
 ---
 
-**Última atualização**: 2025-11-03
-**Versão**: 1.3.0
-**Features**: Máscaras de segmentação Grad-CAM + Validação científica + Documentação completa
+**Última atualização**: 2025-11-04
+**Versão**: 1.3.0+
+**Features**: Método oficial padrão + Endpoint /generate_masks + Notebook unificado + Documentação completa

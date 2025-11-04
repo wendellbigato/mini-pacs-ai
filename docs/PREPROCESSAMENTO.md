@@ -433,20 +433,28 @@ Max difference:   0.1612  ← Até 16% em alguns casos!
 
 **Conclusão:** ✅ Pipeline oficial é **significativamente melhor**
 
-### Fase 4: Arquitetura Final
+### Fase 4: Arquitetura Final (v1.3.0+)
 
-**Design decision:** Manter AMBOS os métodos
+**Design decision:** Método oficial como padrão em TODOS os endpoints
 
-**Motivo:**
-- `/predict` → baseline (método atual)
-- `/predict_with_heatmap` → produção (método oficial)
-- Permite validação contínua e A/B testing
+**Decisão baseada em pesquisa:**
+- Diferença média: **11.32%** entre métodos
+- Diferença máxima: **16.09%** (Effusion)
+- Conclusão: Método oficial é significativamente melhor
+
+**Implementação:**
+- `/predict` → método oficial por padrão (`use_official_preprocessing=True`)
+- `/predict_with_heatmap` → método oficial por padrão
+- `/compare_preprocessing` → mantém ambos para validação científica
+- Método anterior disponível via parâmetro `use_official_preprocessing=False` (legado)
 
 **Benefícios:**
-- 📊 Validação científica
-- 🔬 Facilita experimentos
-- 📚 Documenta evolução do projeto
-- 🎓 Demonstra metodologia científica
+- ✅ Consistência com treinamento do modelo
+- ✅ Evita over-confidence (probabilidades inflacionadas)
+- ✅ Padrão radiológico (HU scale [-1024, 1024])
+- ✅ Melhor acurácia (~11% de diferença média)
+- 📊 Validação científica documentada
+- 🔬 Metodologia científica demonstrada
 
 ---
 
@@ -454,19 +462,25 @@ Max difference:   0.1612  ← Até 16% em alguns casos!
 
 ### Para Produção
 
-**Usar:** Pipeline oficial TorchXRayVision
+**Usar:** Endpoints padrão (já usam método oficial automaticamente)
 
 ```bash
-# Endpoint recomendado
-curl -X POST "http://localhost:8000/predict_with_heatmap?use_official_preprocessing=true" \
+# Inferência básica (método oficial padrão desde v1.3.0)
+curl -X POST "http://localhost:8000/predict" \
+  -F "dicom_file=@exam.dcm"
+
+# Com visualização Grad-CAM (método oficial padrão)
+curl -X POST "http://localhost:8000/predict_with_heatmap" \
   -F "dicom_file=@exam.dcm"
 ```
 
-**Vantagens:**
-- ✅ Mesmo método usado no treinamento
-- ✅ ~7.85% mais preciso em média
+**Vantagens do método oficial (padrão):**
+- ✅ Mesmo método usado no treinamento do modelo
+- ✅ ~11.32% mais preciso em média
 - ✅ Até 16% melhor em casos específicos
 - ✅ Bit depth auto-detect (robustez)
+- ✅ Padrão radiológico (HU scale)
+- ✅ Evita over-confidence
 
 ### Para Validação Científica
 
@@ -478,7 +492,8 @@ curl -X POST "http://localhost:8000/compare_preprocessing" \
 ```
 
 **Análise:**
-- Ver `notebooks/comparison_analysis.ipynb` PARTE 1
+- Ver `notebooks/orthanc_analysis.ipynb` Seção 2 (Contexto da Pesquisa)
+- Análise detalhada disponível no mesmo notebook
 - Gráficos de diferenças por patologia
 - Estatísticas consolidadas
 
@@ -517,10 +532,10 @@ probs_ensemble = np.mean([model(img) for model in models], axis=0)
 ## Documentação Complementar
 
 **Arquivos do projeto:**
-- Pipeline atual: `inference_api/app/preprocess.py`
-- Pipeline oficial: `inference_api/app/preprocess_official.py`
-- Comparação: `notebooks/comparison_analysis.ipynb` PARTE 1
-- API: `inference_api/app/main.py` (`/compare_preprocessing`)
+- Pipeline oficial (padrão): `inference_api/app/preprocess_official.py`
+- Pipeline legado: `inference_api/app/preprocess.py`
+- Notebook: `notebooks/orthanc_analysis.ipynb` (análise completa e fluxo de uso)
+- API: `inference_api/app/main.py` (todos endpoints usam método oficial)
 
 **Referências:**
 - TorchXRayVision normalize: https://github.com/mlmed/torchxrayvision/blob/master/torchxrayvision/datasets.py#L743
@@ -532,5 +547,7 @@ probs_ensemble = np.mean([model(img) for model in models], axis=0)
 
 ---
 
-**Última atualização:** 2025-11-03 (v1.3.0)
+**Última atualização:** 2025-11-04 (v1.3.0+)
 **Autor:** Wendell Barreto (wendellbarreto@gmail.com)
+
+**Nota:** A partir da v1.3.0+, o método oficial TorchXRayVision é o padrão em todos os endpoints da API, baseado em pesquisa empírica que demonstrou diferença média de 11.32% nas probabilidades. Ver `notebooks/orthanc_analysis.ipynb` para contexto completo.
