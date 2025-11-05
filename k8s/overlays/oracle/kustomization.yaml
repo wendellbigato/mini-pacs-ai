@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: mini-pacs-ai
+
+bases:
+  - ../../base
+
+namePrefix: oci-
+
+commonLabels:
+  cloud-provider: oracle
+  deployment-target: oke
+
+patchesStrategicMerge:
+  - orthanc-pvc-patch.yaml
+  - orthanc-service-patch.yaml
+  - inference-api-service-patch.yaml
+  - jupyter-service-patch.yaml
+
+images:
+  - name: mini-pacs-ai/inference-api
+    newName: ${OCI_REGION}.ocir.io/${OCI_TENANCY_NAMESPACE}/mini-pacs-ai/inference-api
+    newTag: ${IMAGE_TAG}
+
+configMapGenerator:
+  - name: oci-config
+    literals:
+      - OCI_REGION=${OCI_REGION}
+      - ENVIRONMENT=production

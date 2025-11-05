@@ -7,6 +7,142 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
+## [1.4.0] - 2025-11-04
+
+### 🚀 CI/CD e Deploy Kubernetes
+
+#### Added - Templates CI/CD
+
+- **GitHub Actions workflows completos** para deploy automatizado em Kubernetes
+  - `.github/workflows/deploy-aws-eks.yml` - Deploy em AWS EKS (Elastic Kubernetes Service)
+  - `.github/workflows/deploy-azure-aks.yml` - Deploy em Azure AKS (Azure Kubernetes Service)
+  - `.github/workflows/deploy-oracle-oke.yml` - Deploy em Oracle OKE (Oracle Kubernetes Engine)
+
+#### Features dos Workflows
+
+- **Trigger**: Pull requests para branch main com labels
+  - `deploy:aws` - Deploy apenas na AWS EKS
+  - `deploy:azure` - Deploy apenas na Azure AKS
+  - `deploy:oracle` - Deploy apenas na Oracle OKE
+  - Suporte a múltiplas labels para deploy multi-cloud
+- **Build automático**: Docker image build com BuildKit
+- **Push automático**: Para registries de cada cloud (ECR/ACR/OCIR)
+- **Deploy automático**: Kustomize build + kubectl apply
+- **Security scanning**: Trivy vulnerability scanner integrado
+- **PR comments**: Feedback automático com:
+  - Image tags e digest
+  - Endpoints dos serviços deployados
+  - Comandos de verificação
+- **Health checks**: Verificação automática pós-deploy
+- **GitHub Security**: Upload de vulnerabilidades para GitHub Security tab
+
+#### Added - Manifestos Kubernetes
+
+**Base (`k8s/base/`):**
+- `namespace.yaml` - Namespace mini-pacs-ai
+- `orthanc-deployment.yaml` - Deployment Orthanc (1 replica)
+- `orthanc-service.yaml` - Service ClusterIP para Orthanc
+- `orthanc-pvc.yaml` - PersistentVolumeClaim 20Gi
+- `inference-api-deployment.yaml` - Deployment API (2 replicas)
+- `inference-api-service.yaml` - Service ClusterIP para API
+- `kustomization.yaml` - Base kustomization
+
+**AWS Overlay (`k8s/overlays/aws/`):**
+- `kustomization.yaml` - Configuração AWS
+- `orthanc-pvc-patch.yaml` - Storage class gp3, 50Gi
+- `orthanc-service-patch.yaml` - LoadBalancer com NLB
+- `inference-api-service-patch.yaml` - LoadBalancer NLB
+
+**Azure Overlay (`k8s/overlays/azure/`):**
+- `kustomization.yaml` - Configuração Azure
+- `orthanc-pvc-patch.yaml` - Storage class managed-premium, 50Gi
+- `orthanc-service-patch.yaml` - LoadBalancer Azure
+- `inference-api-service-patch.yaml` - LoadBalancer Azure
+
+**Oracle Overlay (`k8s/overlays/oracle/`):**
+- `kustomization.yaml` - Configuração Oracle
+- `orthanc-pvc-patch.yaml` - Storage class oci-bv, 50Gi
+- `orthanc-service-patch.yaml` - LoadBalancer OCI flexible
+- `inference-api-service-patch.yaml` - LoadBalancer OCI flexible
+
+#### Added - Documentação
+
+- **docs/DEPLOY.md** - Guia completo de deploy Kubernetes
+  - Arquitetura de deploy
+  - Pré-requisitos por cloud provider
+  - Criação de clusters (EKS/AKS/OKE)
+  - Configuração de registries (ECR/ACR/OCIR)
+  - GitHub Secrets necessários
+  - Personalização de workflows
+  - Comandos de verificação
+  - Testes pós-deploy
+  - Troubleshooting completo
+  - Security best practices
+  - Monitoramento e logs
+  - Rollback strategies
+
+#### Recursos Kubernetes
+
+**Deployments:**
+| Component | Replicas | CPU Requests | CPU Limits | Memory Requests | Memory Limits |
+|-----------|----------|--------------|------------|-----------------|---------------|
+| Orthanc | 1 | 250m | 1000m | 512Mi | 2Gi |
+| Inference API | 2 | 1000m | 2000m | 4Gi | 8Gi |
+
+**Services:**
+- Orthanc: LoadBalancer (portas 8042 HTTP, 4242 DICOM)
+- Inference API: LoadBalancer (porta 8000 HTTP)
+
+**Storage:**
+- Orthanc PVC: 50Gi (gp3/managed-premium/oci-bv)
+
+#### Changed
+
+- **README.md**:
+  - Versão atualizada para 1.4.0
+  - Nova seção "Deploy em Kubernetes"
+  - Estrutura de projeto atualizada (`.github/`, `k8s/`)
+  - Features line atualizada
+- **Estrutura do projeto**: Adicionados diretórios `.github/workflows/` e `k8s/`
+
+#### Detalhes Técnicos
+
+**GitHub Actions:**
+- OIDC authentication (AWS)
+- Service Principal (Azure)
+- OCI CLI (Oracle)
+- Docker Buildx com cache
+- Kustomize para customização
+- Kubectl 1.28.0
+- Trivy scanner
+
+**Kustomize:**
+- Padrão overlay/base
+- Name prefix por cloud
+- Image tag substitution via env vars
+- Strategic merge patches
+- ConfigMap generators
+
+**Security:**
+- Secrets via GitHub repository secrets
+- Não hardcoded credentials
+- Trivy SARIF upload to GitHub
+- Vulnerability blocking (opcional)
+
+#### Benefícios
+
+✅ **Multi-cloud ready**: Templates para 3 cloud providers
+✅ **Production ready**: Health checks, monitoring, rollback
+✅ **Developer friendly**: PR comments com endpoints
+✅ **Secure**: Security scanning, no hardcoded secrets
+✅ **Automated**: Zero manual deployment steps
+
+### ⚡ Breaking Changes
+
+**Nenhum!** CI/CD é totalmente opcional. Deploy local via Docker Compose continua funcionando normalmente.
+
+---
+
 ## [1.3.0+] - 2025-11-04
 
 ### 🔬 Pesquisa e Decisão Técnica

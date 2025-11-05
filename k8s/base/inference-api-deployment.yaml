@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inference-api
+  namespace: mini-pacs-ai
+  labels:
+    app: inference-api
+    component: ml
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: inference-api
+  template:
+    metadata:
+      labels:
+        app: inference-api
+        component: ml
+    spec:
+      containers:
+      - name: inference-api
+        image: mini-pacs-ai/inference-api:latest
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        env:
+        - name: ORTHANC_URL
+          value: "http://orthanc:8042"
+        - name: ORTHANC_USERNAME
+          value: ""
+        - name: ORTHANC_PASSWORD
+          value: ""
+        - name: MODEL_NAME
+          value: "all"
+        - name: WORKERS
+          value: "1"
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "1000m"
+          limits:
+            memory: "8Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        volumeMounts:
+        - name: model-cache
+          mountPath: /root/.cache/torch
+      volumes:
+      - name: model-cache
+        emptyDir:
+          sizeLimit: 5Gi
