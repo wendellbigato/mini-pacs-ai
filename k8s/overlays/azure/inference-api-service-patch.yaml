@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: inference-api
+  namespace: mini-pacs-ai
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: "false"
+spec:
+  type: LoadBalancer

@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orthanc
+  namespace: mini-pacs-ai
+  labels:
+    app: orthanc
+    component: pacs
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate  # PVC requires single writer
+  selector:
+    matchLabels:
+      app: orthanc
+  template:
+    metadata:
+      labels:
+        app: orthanc
+        component: pacs
+    spec:
+      containers:
+      - name: orthanc
+        image: jodogne/orthanc-plugins:1.12.1
+        ports:
+        - containerPort: 8042
+          name: http
+          protocol: TCP
+        - containerPort: 4242
+          name: dicom
+          protocol: TCP
+        env:
+        - name: ORTHANC__NAME
+          value: "Mini-PACS-AI"
+        - name: ORTHANC__REMOTE_ACCESS_ALLOWED
+          value: "true"
+        - name: ORTHANC__AUTHENTICATION_ENABLED
+          value: "false"
+        volumeMounts:
+        - name: orthanc-storage
+          mountPath: /var/lib/orthanc/db
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /app/explorer.html
+            port: 8042
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /app/explorer.html
+            port: 8042
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+      volumes:
+      - name: orthanc-storage
+        persistentVolumeClaim:
+          claimName: orthanc-storage

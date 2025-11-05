@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mini-pacs-ai
+  labels:
+    app: mini-pacs-ai
+    environment: production

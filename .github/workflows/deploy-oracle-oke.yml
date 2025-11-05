@@ -1,0 +1,285 @@
+name: Deploy to Oracle OKE
+
+on:
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'inference_api/**'
+      - 'k8s/**'
+      - '.github/workflows/deploy-oracle-oke.yml'
+      - 'Dockerfile'
+      - 'docker-compose.yml'
+
+env:
+  OCI_REGION: us-ashburn-1
+  OKE_CLUSTER_ID: ocid1.cluster.oc1.iad.xxxxx
+  OCIR_REGION: iad
+  OCI_TENANCY_NAMESPACE: your-tenancy-namespace
+  KUBECTL_VERSION: 'v1.28.0'
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Image to OCIR
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.labels.*.name, 'deploy:oracle')
+    permissions:
+      contents: read
+      pull-requests: write
+
+    outputs:
+      image-tag: ${{ steps.meta.outputs.version }}
+      ocir-registry: ${{ steps.setup-ocir.outputs.registry }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup OCIR variables
+        id: setup-ocir
+        run: |
+          echo "registry=${{ env.OCIR_REGION }}.ocir.io" >> $GITHUB_OUTPUT
+          echo "repository=${{ env.OCI_TENANCY_NAMESPACE }}/mini-pacs-ai/inference-api" >> $GITHUB_OUTPUT
+
+      - name: Login to Oracle Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ steps.setup-ocir.outputs.registry }}
+          username: ${{ secrets.OCI_USERNAME }}
+          password: ${{ secrets.OCI_AUTH_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.setup-ocir.outputs.registry }}/${{ steps.setup-ocir.outputs.repository }}
+          tags: |
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./inference_api
+          file: ./inference_api/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+
+      - name: Comment PR with image info
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const output = `### 🐳 Docker Image Built (Oracle OCIR)
+
+            **Registry:** \`${{ steps.setup-ocir.outputs.registry }}\`
+            **Repository:** \`${{ steps.setup-ocir.outputs.repository }}\`
+            **Tags:**
+            \`\`\`
+            ${{ steps.meta.outputs.tags }}
+            \`\`\`
+
+            **Digest:** \`${{ steps.meta.outputs.digest }}\`
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+  deploy-to-oke:
+    name: Deploy to OKE Cluster
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install OCI CLI
+        run: |
+          curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh -o install.sh
+          bash install.sh --accept-all-defaults
+          echo "$HOME/bin" >> $GITHUB_PATH
+
+      - name: Configure OCI CLI
+        run: |
+          mkdir -p ~/.oci
+          echo "${{ secrets.OCI_CLI_CONFIG }}" > ~/.oci/config
+          echo "${{ secrets.OCI_CLI_KEY_CONTENT }}" > ~/.oci/oci_api_key.pem
+          chmod 600 ~/.oci/oci_api_key.pem
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: ${{ env.KUBECTL_VERSION }}
+
+      - name: Setup kubeconfig for OKE
+        run: |
+          oci ce cluster create-kubeconfig \
+            --cluster-id ${{ env.OKE_CLUSTER_ID }} \
+            --file $HOME/.kube/config \
+            --region ${{ env.OCI_REGION }} \
+            --token-version 2.0.0 \
+            --kube-endpoint PUBLIC_ENDPOINT
+
+      - name: Install kustomize
+        run: |
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          sudo mv kustomize /usr/local/bin/
+
+      - name: Verify cluster connection
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Deploy to Kubernetes
+        env:
+          IMAGE_TAG: ${{ needs.build-and-push.outputs.image-tag }}
+        run: |
+          cd k8s/overlays/oracle
+          kustomize edit set image \
+            mini-pacs-ai/inference-api=${{ needs.build-and-push.outputs.ocir-registry }}/${{ env.OCI_TENANCY_NAMESPACE }}/mini-pacs-ai/inference-api:${{ env.IMAGE_TAG }}
+
+          kustomize build . | kubectl apply -f -
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/oci-inference-api -n mini-pacs-ai --timeout=10m
+          kubectl rollout status deployment/oci-orthanc -n mini-pacs-ai --timeout=5m
+          kubectl rollout status deployment/oci-jupyter -n mini-pacs-ai --timeout=5m
+
+      - name: Get service endpoints
+        id: endpoints
+        run: |
+          echo "Waiting for LoadBalancers to be ready..."
+          sleep 30
+
+          ORTHANC_IP=$(kubectl get svc oci-orthanc -n mini-pacs-ai -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          API_IP=$(kubectl get svc oci-inference-api -n mini-pacs-ai -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          JUPYTER_IP=$(kubectl get svc oci-jupyter -n mini-pacs-ai -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+          echo "orthanc-endpoint=${ORTHANC_IP}" >> $GITHUB_OUTPUT
+          echo "api-endpoint=${API_IP}" >> $GITHUB_OUTPUT
+          echo "jupyter-endpoint=${JUPYTER_IP}" >> $GITHUB_OUTPUT
+
+      - name: Run health checks
+        run: |
+          echo "Testing API health..."
+          API_URL="http://${{ steps.endpoints.outputs.api-endpoint }}:8000"
+
+          for i in {1..10}; do
+            if curl -s "${API_URL}/health" | grep -q "healthy"; then
+              echo "✅ API is healthy!"
+              break
+            fi
+            echo "Waiting for API... (attempt $i/10)"
+            sleep 10
+          done
+
+          curl -s "${API_URL}/health" | jq .
+
+      - name: Comment PR with deployment info
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const output = `### 🚀 Deployment to Oracle OKE Successful
+
+            **Cluster ID:** \`${{ env.OKE_CLUSTER_ID }}\`
+            **Region:** \`${{ env.OCI_REGION }}\`
+            **Namespace:** \`mini-pacs-ai\`
+
+            #### 📡 Service Endpoints
+
+            | Service | Endpoint |
+            |---------|----------|
+            | 🏥 Orthanc PACS | http://${{ steps.endpoints.outputs.orthanc-endpoint }}:8042 |
+            | 🤖 Inference API | http://${{ steps.endpoints.outputs.api-endpoint }}:8000 |
+            | 📚 API Docs (Swagger) | http://${{ steps.endpoints.outputs.api-endpoint }}:8000/docs |
+            | 📓 Jupyter Notebook | http://${{ steps.endpoints.outputs.jupyter-endpoint }}:8888 |
+
+            #### 🔍 Verify Deployment
+
+            \`\`\`bash
+            # Setup kubeconfig
+            oci ce cluster create-kubeconfig \\
+              --cluster-id ${{ env.OKE_CLUSTER_ID }} \\
+              --file $HOME/.kube/config \\
+              --region ${{ env.OCI_REGION }}
+
+            # Get pods status
+            kubectl get pods -n mini-pacs-ai
+
+            # Test API
+            curl http://${{ steps.endpoints.outputs.api-endpoint }}:8000/health
+            \`\`\`
+
+            #### 🧪 Test Endpoints
+
+            \`\`\`bash
+            # Test prediction
+            curl -X POST http://${{ steps.endpoints.outputs.api-endpoint }}:8000/predict \\
+              -F "dicom_file=@exam.dcm"
+
+            # Test mask generation
+            curl -X POST http://${{ steps.endpoints.outputs.api-endpoint }}:8000/generate_masks \\
+              -F "dicom_file=@exam.dcm"
+            \`\`\`
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+      - name: Deployment summary
+        run: |
+          echo "## ✅ Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Cluster ID:** ${{ env.OKE_CLUSTER_ID }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Region:** ${{ env.OCI_REGION }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Image:** ${{ needs.build-and-push.outputs.ocir-registry }}/${{ env.OCI_TENANCY_NAMESPACE }}/mini-pacs-ai/inference-api:${{ needs.build-and-push.outputs.image-tag }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Service Endpoints" >> $GITHUB_STEP_SUMMARY
+          echo "- **Orthanc:** http://${{ steps.endpoints.outputs.orthanc-endpoint }}:8042" >> $GITHUB_STEP_SUMMARY
+          echo "- **API:** http://${{ steps.endpoints.outputs.api-endpoint }}:8000" >> $GITHUB_STEP_SUMMARY
+          echo "- **Jupyter:** http://${{ steps.endpoints.outputs.jupyter-endpoint }}:8888" >> $GITHUB_STEP_SUMMARY
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ needs.build-and-push.outputs.ocir-registry }}/${{ env.OCI_TENANCY_NAMESPACE }}/mini-pacs-ai/inference-api:${{ needs.build-and-push.outputs.image-tag }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'

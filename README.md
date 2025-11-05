@@ -1,9 +1,9 @@
 # Mini PACS AI
 
 > **Autor:** Wendell Barreto (wendellbarreto@gmail.com)
-> **Versão:** 1.3.0+
+> **Versão:** 1.4.0
 
-Sistema de inferência de achados radiológicos em imagens DICOM usando TorchXRayVision, integrado com PACS Orthanc.
+Sistema de inferência de achados radiológicos em imagens DICOM usando TorchXRayVision, integrado com PACS Orthanc, com suporte a deploy em Kubernetes.
 
 ---
 
@@ -75,6 +75,93 @@ make test    # Testa se os serviços estão respondendo
 
 ---
 
+## ☁️ Deploy em Kubernetes
+
+Este projeto inclui templates completos de CI/CD para deploy em clusters Kubernetes usando GitHub Actions.
+
+### Cloud Providers Suportados
+
+- ☁️ **AWS EKS** (Elastic Kubernetes Service) - `.github/workflows/deploy-aws-eks.yml`
+- ☁️ **Azure AKS** (Azure Kubernetes Service) - `.github/workflows/deploy-azure-aks.yml`
+- ☁️ **Oracle OKE** (Oracle Kubernetes Engine) - `.github/workflows/deploy-oracle-oke.yml`
+
+### Features
+
+✅ **CI/CD Completo**: Build, Push e Deploy automatizados via GitHub Actions
+✅ **Kustomize**: Manifestos Kubernetes organizados (base + overlays por cloud)
+✅ **Security Scanning**: Trivy vulnerability scanner integrado
+✅ **PR Comments**: Feedback automático com endpoints deployados
+✅ **Multi-Cloud**: Templates prontos para AWS, Azure e Oracle
+
+### Quick Start Kubernetes
+
+```bash
+# 1. Configure secrets no GitHub (veja docs/DEPLOY.md)
+
+# 2. Crie PR para main
+git checkout -b feature/my-feature
+git push origin feature/my-feature
+
+# 3. Adicione label no PR:
+#    - deploy:aws     → Deploy na AWS EKS
+#    - deploy:azure   → Deploy na Azure AKS
+#    - deploy:oracle  → Deploy na Oracle OKE
+#    (pode adicionar múltiplas labels para deploy multi-cloud)
+
+# 4. Workflow roda automaticamente:
+#    - Build da imagem Docker
+#    - Push para registry (ECR/ACR/OCIR)
+#    - Deploy no cluster Kubernetes
+#    - Health checks
+#    - Comentário no PR com endpoints
+```
+
+### Estrutura Kubernetes
+
+```
+k8s/
+├── base/                       # Manifestos base (comuns)
+│   ├── namespace.yaml
+│   ├── orthanc-deployment.yaml
+│   ├── orthanc-service.yaml
+│   ├── orthanc-pvc.yaml
+│   ├── inference-api-deployment.yaml
+│   ├── inference-api-service.yaml
+│   └── kustomization.yaml
+│
+└── overlays/                   # Customizações por cloud
+    ├── aws/                    # AWS EKS
+    │   ├── kustomization.yaml
+    │   ├── orthanc-pvc-patch.yaml (gp3 storage)
+    │   └── *-service-patch.yaml (NLB)
+    ├── azure/                  # Azure AKS
+    │   ├── kustomization.yaml
+    │   ├── orthanc-pvc-patch.yaml (managed-premium)
+    │   └── *-service-patch.yaml (Azure LB)
+    └── oracle/                 # Oracle OKE
+        ├── kustomization.yaml
+        ├── orthanc-pvc-patch.yaml (oci-bv)
+        └── *-service-patch.yaml (OCI LB)
+```
+
+### Recursos Deployados
+
+| Componente | Replicas | CPU | Memory | Storage |
+|------------|----------|-----|--------|---------|
+| Orthanc PACS | 1 | 250m-1000m | 512Mi-2Gi | 50Gi PVC |
+| Inference API | 2 | 1000m-2000m | 4Gi-8Gi | - |
+
+### Guia Completo
+
+**📖 [docs/DEPLOY.md](./docs/DEPLOY.md)** - Documentação completa de deploy
+- Pré-requisitos por cloud provider
+- Configuração de secrets GitHub
+- Comandos de verificação e troubleshooting
+- Monitoramento e rollback
+- Exemplos práticos
+
+---
+
 ## 📚 Documentação Completa
 
 ### 🎓 **Aprenda do Básico ao Avançado**
@@ -142,6 +229,12 @@ make test    # Testa se os serviços estão respondendo
   - Quando e como rebuildar
   - Troubleshooting de build
 
+- **[DEPLOY.md](./docs/DEPLOY.md)** - Deploy em Kubernetes
+  - Templates CI/CD para AWS EKS, Azure AKS e Oracle OKE
+  - Configuração de clusters e registries
+  - Secrets do GitHub
+  - Troubleshooting de deploy
+
 ### 🩺 **Uso Clínico**
 
 **[CLINICAL_USAGE.md](./docs/CLINICAL_USAGE.md)** - Guia completo para médicos radiologistas
@@ -201,6 +294,26 @@ mini-pacs-ai/
 ├── Makefile                         # Comandos para gerenciar o projeto
 ├── docker-compose.yml               # Orquestração dos serviços
 │
+├── .github/                         # ☁️ CI/CD
+│   └── workflows/
+│       ├── deploy-aws-eks.yml      # Deploy AWS EKS
+│       ├── deploy-azure-aks.yml    # Deploy Azure AKS
+│       └── deploy-oracle-oke.yml   # Deploy Oracle OKE
+│
+├── k8s/                             # ☸️ Kubernetes manifests
+│   ├── base/                       # Manifestos base
+│   │   ├── namespace.yaml
+│   │   ├── orthanc-deployment.yaml
+│   │   ├── orthanc-service.yaml
+│   │   ├── orthanc-pvc.yaml
+│   │   ├── inference-api-deployment.yaml
+│   │   ├── inference-api-service.yaml
+│   │   └── kustomization.yaml
+│   └── overlays/                   # Overlays por cloud
+│       ├── aws/                    # AWS EKS
+│       ├── azure/                  # Azure AKS
+│       └── oracle/                 # Oracle OKE
+│
 ├── docs/                            # 📚 Documentação completa
 │   ├── DOCS_INDEX.md               # Índice de navegação
 │   ├── ACADEMY.md                  # Trilha de aprendizado completa
@@ -212,7 +325,9 @@ mini-pacs-ai/
 │   ├── TESTE_API.md                # Como testar
 │   ├── GUIA_NOTEBOOK.md            # Usando notebooks
 │   ├── REBUILD_INSTRUCOES.md       # Rebuild vs restart
+│   ├── DEPLOY.md                   # Deploy Kubernetes ☁️
 │   ├── JUPYTER_IMPLEMENTADO.md     # Arquitetura Jupyter
+│   ├── academy-detalhada/          # Academia detalhada (8h)
 │   └── plans/                      # Planos e TODOs
 │
 ├── orthanc/
@@ -472,5 +587,5 @@ Este projeto foi desenvolvido para fins educacionais como parte de um desafio t�
 ---
 
 **Última atualização**: 2025-11-04
-**Versão**: 1.3.0+
-**Features**: Método oficial padrão + Endpoint /generate_masks + Notebook unificado + Documentação completa
+**Versão**: 1.4.0
+**Features**: CI/CD Kubernetes (AWS/Azure/Oracle) + Método oficial padrão + Endpoint /generate_masks + Notebook unificado + Documentação completa
